@@ -37,9 +37,10 @@ const UseCaseUploader: React.FC = () => {
 
     try {
       const response = await axios.post<UseCaseResponse>(
-        "http://localhost:8080/api/usecase-service/v1/usecases/text",
+        "https://spec2testbe-production.up.railway.app/api/usecase-service/v1/usecases/text",
         { description }
       );
+
       setDomainObjects(response.data.domainObjects || []);
       setActions(response.data.actions || []);
     } catch (err: any) {
@@ -66,7 +67,7 @@ const UseCaseUploader: React.FC = () => {
       formData.append("file", file);
 
       const response = await axios.post<UseCaseResponse>(
-        "http://localhost:8080/api/usecase-service/v1/usecases/upload",
+        "https://spec2testbe-production.up.railway.app/api/usecase-service/v1/usecases/upload",
         formData,
         {
           headers: {
