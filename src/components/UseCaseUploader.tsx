@@ -1,332 +1,321 @@
-import React, { useState, ChangeEvent } from 'react';
-import axios from 'axios';
-import styles from '../styles/UseCaseUploader.module.css';
+import React, { useState, ChangeEvent } from "react";
+import axios from "axios";
+import styles from "../styles/UseCaseUploader.module.css";
 
 interface UseCaseResponse {
-    domainObjects: string[];
-    actions: string[];
+  domainObjects: string[];
+  actions: string[];
 }
 
 const UseCaseUploader: React.FC = () => {
-    const [description, setDescription] = useState('');
-    const [file, setFile] = useState<File | null>(null);
-    const [domainObjects, setDomainObjects] = useState<string[]>([]);
-    const [removedDomainObjects, setRemovedDomainObjects] = useState<string[]>([]);
-    const [actions, setActions] = useState<string[]>([]);
-    const [removedActions, setRemovedActions] = useState<string[]>([]);
-    const [newDomainObject, setNewDomainObject] = useState('');
-    const [newAction, setNewAction] = useState('');
-    const [loading, setLoading] = useState(false);
-    const [error, setError] = useState('');
-    const [selectedTab, setSelectedTab] = useState<'text' | 'file'>('text');
-    const [showDeletedDomainObjects, setShowDeletedDomainObjects] = useState(false);
-    const [showDeletedActions, setShowDeletedActions] = useState(false);
+  const [description, setDescription] = useState("");
+  const [file, setFile] = useState<File | null>(null);
+  const [domainObjects, setDomainObjects] = useState<string[]>([]);
+  const [removedDomainObjects, setRemovedDomainObjects] = useState<string[]>(
+    []
+  );
+  const [actions, setActions] = useState<string[]>([]);
+  const [removedActions, setRemovedActions] = useState<string[]>([]);
+  const [newDomainObject, setNewDomainObject] = useState("");
+  const [newAction, setNewAction] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const [selectedTab, setSelectedTab] = useState<"text" | "file">("text");
+  const [showDeletedDomainObjects, setShowDeletedDomainObjects] =
+    useState(false);
+  const [showDeletedActions, setShowDeletedActions] = useState(false);
 
-    /** Handle text input submission */
-    const handleTextSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-        e.preventDefault();
-        setError('');
-        setDomainObjects([]);
-        setRemovedDomainObjects([]);
-        setActions([]);
-        setRemovedActions([]);
-        setLoading(true);
+  /** Handle text input submission */
+  const handleTextSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    setError("");
+    setDomainObjects([]);
+    setRemovedDomainObjects([]);
+    setActions([]);
+    setRemovedActions([]);
+    setLoading(true);
 
-        try {
-            const response = await axios.post<UseCaseResponse>(
-                'http://localhost:8080/api/usecase-service/v1/usecases/text',
-                { description }
-            );
-            setDomainObjects(response.data.domainObjects || []);
-            setActions(response.data.actions || []);
-        } catch (err: any) {
-            console.error(err);
-            setError('Error processing text input.');
-        } finally {
-            setLoading(false);
+    try {
+      const response = await axios.post<UseCaseResponse>(
+        "http://localhost:8080/api/usecase-service/v1/usecases/text",
+        { description }
+      );
+      setDomainObjects(response.data.domainObjects || []);
+      setActions(response.data.actions || []);
+    } catch (err: any) {
+      console.error(err);
+      setError("Error processing text input.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  /** Handle PDF file submission */
+  const handleFileSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    if (!file) return;
+    setError("");
+    setDomainObjects([]);
+    setRemovedDomainObjects([]);
+    setActions([]);
+    setRemovedActions([]);
+    setLoading(true);
+
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+
+      const response = await axios.post<UseCaseResponse>(
+        "http://localhost:8080/api/usecase-service/v1/usecases/upload",
+        formData,
+        {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
         }
-    };
+      );
 
-    /** Handle PDF file submission */
-    const handleFileSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-        e.preventDefault();
-        if (!file) return;
-        setError('');
-        setDomainObjects([]);
-        setRemovedDomainObjects([]);
-        setActions([]);
-        setRemovedActions([]);
-        setLoading(true);
+      setDomainObjects(response.data.domainObjects || []);
+      setActions(response.data.actions || []);
+    } catch (err: any) {
+      console.error(err);
+      setError("Error processing file upload.");
+    } finally {
+      setLoading(false);
+    }
+  };
 
-        try {
-            const formData = new FormData();
-            formData.append('file', file);
+  /** File input handler */
+  const onFileChange = (e: ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files.length > 0) {
+      setFile(e.target.files[0]);
+    }
+  };
 
-            const response = await axios.post<UseCaseResponse>(
-                'http://localhost:8080/api/usecase-service/v1/usecases/upload',
-                formData,
-                {
-                    headers: {
-                        'Content-Type': 'multipart/form-data'
-                    }
-                }
-            );
+  /** Toggle domain object: active -> removed, removed -> active */
+  const toggleDomainObject = (item: string, fromActive: boolean) => {
+    if (fromActive) {
+      setDomainObjects((prev) => prev.filter((i) => i !== item));
+      setRemovedDomainObjects((prev) => [...prev, item]);
+    } else {
+      setRemovedDomainObjects((prev) => prev.filter((i) => i !== item));
+      setDomainObjects((prev) => [...prev, item]);
+    }
+  };
 
-            setDomainObjects(response.data.domainObjects || []);
-            setActions(response.data.actions || []);
-        } catch (err: any) {
-            console.error(err);
-            setError('Error processing file upload.');
-        } finally {
-            setLoading(false);
-        }
-    };
+  /** Toggle action: active -> removed, removed -> active */
+  const toggleAction = (item: string, fromActive: boolean) => {
+    if (fromActive) {
+      setActions((prev) => prev.filter((i) => i !== item));
+      setRemovedActions((prev) => [...prev, item]);
+    } else {
+      setRemovedActions((prev) => prev.filter((i) => i !== item));
+      setActions((prev) => [...prev, item]);
+    }
+  };
 
-    /** File input handler */
-    const onFileChange = (e: ChangeEvent<HTMLInputElement>) => {
-        if (e.target.files && e.target.files.length > 0) {
-            setFile(e.target.files[0]);
-        }
-    };
+  /** Add a new domain object to the list */
+  const addDomainObject = () => {
+    if (newDomainObject.trim()) {
+      setDomainObjects((prev) => [...prev, newDomainObject.trim()]);
+      setNewDomainObject("");
+    }
+  };
 
-    /** Toggle domain object: active -> removed, removed -> active */
-    const toggleDomainObject = (item: string, fromActive: boolean) => {
-        if (fromActive) {
-            setDomainObjects((prev) => prev.filter((i) => i !== item));
-            setRemovedDomainObjects((prev) => [...prev, item]);
-        } else {
-            setRemovedDomainObjects((prev) => prev.filter((i) => i !== item));
-            setDomainObjects((prev) => [...prev, item]);
-        }
-    };
+  /** Add a new action to the list */
+  const addAction = () => {
+    if (newAction.trim()) {
+      setActions((prev) => [...prev, newAction.trim()]);
+      setNewAction("");
+    }
+  };
 
-    /** Toggle action: active -> removed, removed -> active */
-    const toggleAction = (item: string, fromActive: boolean) => {
-        if (fromActive) {
-            setActions((prev) => prev.filter((i) => i !== item));
-            setRemovedActions((prev) => [...prev, item]);
-        } else {
-            setRemovedActions((prev) => prev.filter((i) => i !== item));
-            setActions((prev) => [...prev, item]);
-        }
-    };
+  return (
+    <div className={styles.container}>
+      <h1 className={styles.title}>Automated Test Case Generation Tool</h1>
 
-    /** Add a new domain object to the list */
-    const addDomainObject = () => {
-        if (newDomainObject.trim()) {
-            setDomainObjects((prev) => [...prev, newDomainObject.trim()]);
-            setNewDomainObject('');
-        }
-    };
+      <div className={styles.tabButtons}>
+        <button
+          onClick={() => setSelectedTab("text")}
+          disabled={selectedTab === "text"}
+          className={`${styles.tabButton} ${
+            selectedTab === "text" ? styles.active : ""
+          }`}
+        >
+          Text Input
+        </button>
+        <button
+          onClick={() => setSelectedTab("file")}
+          disabled={selectedTab === "file"}
+          className={`${styles.tabButton} ${
+            selectedTab === "file" ? styles.active : ""
+          }`}
+        >
+          PDF Upload
+        </button>
+      </div>
 
-    /** Add a new action to the list */
-    const addAction = () => {
-        if (newAction.trim()) {
-            setActions((prev) => [...prev, newAction.trim()]);
-            setNewAction('');
-        }
-    };
-
-    /** Finalize domain objects and actions */
-    const handleFinalize = async () => {
-        try {
-            setLoading(true);
-            const response = await axios.post<UseCaseResponse>(
-                'http://localhost:8080/api/usecase-service/v1/usecases/finalize',
-                { domainObjects, actions }
-            );
-            alert('Domain objects & actions finalized successfully!');
-        } catch (err) {
-            console.error(err);
-            setError('Error finalizing data.');
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    return (
-        <div className={styles.container}>
-            <h1 className={styles.title}>Automated Test Case Generation Tool</h1>
-
-            <div className={styles.tabButtons}>
-                <button
-                    onClick={() => setSelectedTab('text')}
-                    disabled={selectedTab === 'text'}
-                    className={`${styles.tabButton} ${selectedTab === 'text' ? styles.active : ''}`}
-                >
-                    Text Input
-                </button>
-                <button
-                    onClick={() => setSelectedTab('file')}
-                    disabled={selectedTab === 'file'}
-                    className={`${styles.tabButton} ${selectedTab === 'file' ? styles.active : ''}`}
-                >
-                    PDF Upload
-                </button>
-            </div>
-
-            {selectedTab === 'text' && (
-                <form onSubmit={handleTextSubmit} className={styles.form}>
+      {selectedTab === "text" && (
+        <form onSubmit={handleTextSubmit} className={styles.form}>
           <textarea
-              className={styles.textarea}
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              placeholder="Enter your requirements here..."
+            className={styles.textarea}
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+            placeholder="Enter your requirements here..."
           />
-                    <button
-                        type="submit"
-                        disabled={loading}
-                        className={styles.submitButton}
-                    >
-                        {loading ? 'Processing...' : 'Submit Text'}
-                    </button>
-                </form>
-            )}
+          <button
+            type="submit"
+            disabled={loading}
+            className={styles.submitButton}
+          >
+            {loading ? "Processing..." : "Submit Text"}
+          </button>
+        </form>
+      )}
 
-            {selectedTab === 'file' && (
-                <form onSubmit={handleFileSubmit} className={styles.form}>
-                    <input
-                        type="file"
-                        accept="application/pdf"
-                        onChange={onFileChange}
-                        className={styles.fileInput}
-                    />
-                    <button
-                        type="submit"
-                        disabled={loading || !file}
-                        className={styles.submitButton}
-                    >
-                        {loading ? 'Processing...' : 'Upload PDF'}
-                    </button>
-                </form>
-            )}
+      {selectedTab === "file" && (
+        <form onSubmit={handleFileSubmit} className={styles.form}>
+          <input
+            type="file"
+            accept="application/pdf"
+            onChange={onFileChange}
+            className={styles.fileInput}
+          />
+          <button
+            type="submit"
+            disabled={loading || !file}
+            className={styles.submitButton}
+          >
+            {loading ? "Processing..." : "Upload PDF"}
+          </button>
+        </form>
+      )}
 
-            {error && <p className={styles.error}>{error}</p>}
+      {error && <p className={styles.error}>{error}</p>}
 
-            {/* Domain Objects */}
-            {(domainObjects.length > 0 || removedDomainObjects.length > 0) && (
-                <div className={styles.results}>
-                    <h2>Domain Objects:</h2>
-                    <ul className={styles.domainList}>
-                        {domainObjects.map((obj, index) => (
-                            <li
-                                key={`active-${index}`}
-                                className={styles.domainListItem}
-                                onClick={() => toggleDomainObject(obj, true)}
-                            >
-                                {obj}
-                            </li>
-                        ))}
-                    </ul>
+      {/* Domain Objects */}
+      {(domainObjects.length > 0 || removedDomainObjects.length > 0) && (
+        <div className={styles.results}>
+          <h2>Domain Objects:</h2>
+          <ul className={styles.domainList}>
+            {domainObjects.map((obj, index) => (
+              <li
+                key={`active-${index}`}
+                className={styles.domainListItem}
+                onClick={() => toggleDomainObject(obj, true)}
+              >
+                {obj}
+              </li>
+            ))}
+          </ul>
 
-                    {/* Add new domain object */}
-                    <div className={styles.addObjectContainer}>
-                        <input
-                            type="text"
-                            value={newDomainObject}
-                            onChange={(e) => setNewDomainObject(e.target.value)}
-                            placeholder="Add new domain object..."
-                            className={styles.addObjectInput}
-                        />
-                        <button onClick={addDomainObject} className={styles.addObjectButton}>
-                            Add
-                        </button>
-                    </div>
+          {/* Add new domain object */}
+          <div className={styles.addObjectContainer}>
+            <input
+              type="text"
+              value={newDomainObject}
+              onChange={(e) => setNewDomainObject(e.target.value)}
+              placeholder="Add new domain object..."
+              className={styles.addObjectInput}
+            />
+            <button
+              onClick={addDomainObject}
+              className={styles.addObjectButton}
+            >
+              Add
+            </button>
+          </div>
 
-                    <h2
-                        className={styles.deletedHeader}
-                        onClick={() => setShowDeletedDomainObjects((prev) => !prev)}
-                    >
-                        Deleted Domain Objects:
-                        <span className={styles.dropdownIcon}>
-              {showDeletedDomainObjects ? '▼' : '▲'}
+          <h2
+            className={styles.deletedHeader}
+            onClick={() => setShowDeletedDomainObjects((prev) => !prev)}
+          >
+            Deleted Domain Objects:
+            <span className={styles.dropdownIcon}>
+              {showDeletedDomainObjects ? "▼" : "▲"}
             </span>
-                    </h2>
-                    {showDeletedDomainObjects && removedDomainObjects.length > 0 && (
-                        <ul className={styles.removedList}>
-                            {removedDomainObjects.map((obj, index) => (
-                                <li
-                                    key={`removed-${index}`}
-                                    className={`${styles.domainListItem} ${styles.removed}`}
-                                    onClick={() => toggleDomainObject(obj, false)}
-                                >
-                                    {obj}
-                                </li>
-                            ))}
-                        </ul>
-                    )}
-                </div>
-            )}
-            <br/>
-            <hr/>
-            <hr/>
-
-            {/* Actions */}
-            {(actions.length > 0 || removedActions.length > 0) && (
-                <div className={styles.results}>
-                    <h2>Actions:</h2>
-                    <ul className={styles.domainList}>
-                        {actions.map((act, index) => (
-                            <li
-                                key={`active-action-${index}`}
-                                className={styles.domainListItem}
-                                onClick={() => toggleAction(act, true)}
-                            >
-                                {act}
-                            </li>
-                        ))}
-                    </ul>
-
-                    {/* Add new action */}
-                    <div className={styles.addObjectContainer}>
-                        <input
-                            type="text"
-                            value={newAction}
-                            onChange={(e) => setNewAction(e.target.value)}
-                            placeholder="Add new action..."
-                            className={styles.addObjectInput}
-                        />
-                        <button onClick={addAction} className={styles.addObjectButton}>
-                            Add
-                        </button>
-                    </div>
-
-                    <h2
-                        className={styles.deletedHeader}
-                        onClick={() => setShowDeletedActions((prev) => !prev)}
-                    >
-                        Deleted Actions:
-                        <span className={styles.dropdownIcon}>
-              {showDeletedActions ? '▼' : '▲'}
-            </span>
-                    </h2>
-                    {showDeletedActions && removedActions.length > 0 && (
-                        <ul className={styles.removedList}>
-                            {removedActions.map((act, index) => (
-                                <li
-                                    key={`removed-action-${index}`}
-                                    className={`${styles.domainListItem} ${styles.removed}`}
-                                    onClick={() => toggleAction(act, false)}
-                                >
-                                    {act}
-                                </li>
-                            ))}
-                        </ul>
-                    )}
-                </div>
-            )}
-
-            {(domainObjects.length > 0 || actions.length > 0) && (
-                <button
-                    onClick={handleFinalize}
-                    className={styles.finalizeButton}
-                    disabled={loading}
+          </h2>
+          {showDeletedDomainObjects && removedDomainObjects.length > 0 && (
+            <ul className={styles.removedList}>
+              {removedDomainObjects.map((obj, index) => (
+                <li
+                  key={`removed-${index}`}
+                  className={`${styles.domainListItem} ${styles.removed}`}
+                  onClick={() => toggleDomainObject(obj, false)}
                 >
-                    {loading ? 'Finalizing...' : 'Finalize Domain Objects & Actions'}
-                </button>
-            )}
+                  {obj}
+                </li>
+              ))}
+            </ul>
+          )}
         </div>
-    );
+      )}
+      <br />
+      <hr />
+      <hr />
+
+      {/* Actions */}
+      {(actions.length > 0 || removedActions.length > 0) && (
+        <div className={styles.results}>
+          <h2>Actions:</h2>
+          <ul className={styles.domainList}>
+            {actions.map((act, index) => (
+              <li
+                key={`active-action-${index}`}
+                className={styles.domainListItem}
+                onClick={() => toggleAction(act, true)}
+              >
+                {act}
+              </li>
+            ))}
+          </ul>
+
+          {/* Add new action */}
+          <div className={styles.addObjectContainer}>
+            <input
+              type="text"
+              value={newAction}
+              onChange={(e) => setNewAction(e.target.value)}
+              placeholder="Add new action..."
+              className={styles.addObjectInput}
+            />
+            <button onClick={addAction} className={styles.addObjectButton}>
+              Add
+            </button>
+          </div>
+
+          <h2
+            className={styles.deletedHeader}
+            onClick={() => setShowDeletedActions((prev) => !prev)}
+          >
+            Deleted Actions:
+            <span className={styles.dropdownIcon}>
+              {showDeletedActions ? "▼" : "▲"}
+            </span>
+          </h2>
+          {showDeletedActions && removedActions.length > 0 && (
+            <ul className={styles.removedList}>
+              {removedActions.map((act, index) => (
+                <li
+                  key={`removed-action-${index}`}
+                  className={`${styles.domainListItem} ${styles.removed}`}
+                  onClick={() => toggleAction(act, false)}
+                >
+                  {act}
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+      )}
+
+      {(domainObjects.length > 0 || actions.length > 0) && (
+        <button className={styles.finalizeButton} disabled={loading}>
+          {loading ? "Finalizing..." : "Finalize Domain Objects & Actions"}
+        </button>
+      )}
+    </div>
+  );
 };
 
 export default UseCaseUploader;

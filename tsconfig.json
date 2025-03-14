@@ -9,7 +9,9 @@
     "moduleResolution": "node",
     "allowSyntheticDefaultImports": true,
     "strict": true,
-    "target": "es6"
+    "target": "es6",
+    "composite": true,
+    "emitDeclarationOnly": false
   },
   "include": ["src/**/*", "components/**/*"]
 }
