@@ -4,7 +4,9 @@ import styles from "../styles/UseCaseUploader.module.css";
 
 interface UseCaseResponse {
   domainObjects: string[];
+  suggestedDomainObjects: string[];
   actions: string[];
+  suggestedActions: string[];
 }
 
 const UseCaseUploader: React.FC = () => {
@@ -24,6 +26,10 @@ const UseCaseUploader: React.FC = () => {
   const [showDeletedDomainObjects, setShowDeletedDomainObjects] =
     useState(false);
   const [showDeletedActions, setShowDeletedActions] = useState(false);
+  const [suggestedDomainObjects, setSuggestedDomainObjects] = useState<
+    string[]
+  >([]);
+  const [suggestedActions, setSuggestedActions] = useState<string[]>([]);
 
   /** Handle text input submission */
   const handleTextSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -40,9 +46,10 @@ const UseCaseUploader: React.FC = () => {
         "https://spec2testbe-production.up.railway.app/api/usecase-service/v1/usecases/text",
         { description }
       );
-
       setDomainObjects(response.data.domainObjects || []);
+      setSuggestedDomainObjects(response.data.suggestedDomainObjects || []);
       setActions(response.data.actions || []);
+      setSuggestedActions(response.data.suggestedActions || []);
     } catch (err: any) {
       console.error(err);
       setError("Error processing text input.");
@@ -78,6 +85,8 @@ const UseCaseUploader: React.FC = () => {
 
       setDomainObjects(response.data.domainObjects || []);
       setActions(response.data.actions || []);
+      setSuggestedDomainObjects(response.data.suggestedDomainObjects || []);
+      setSuggestedActions(response.data.suggestedActions || []);
     } catch (err: any) {
       console.error(err);
       setError("Error processing file upload.");
@@ -202,13 +211,35 @@ const UseCaseUploader: React.FC = () => {
             {domainObjects.map((obj, index) => (
               <li
                 key={`active-${index}`}
-                className={styles.domainListItem}
+                className={`${styles.domainListItem} ${styles.activeItem}`}
                 onClick={() => toggleDomainObject(obj, true)}
               >
                 {obj}
               </li>
             ))}
           </ul>
+
+          {suggestedDomainObjects.length > 0 && (
+            <div className={styles.results}>
+              <ul className={styles.domainList}>
+                {suggestedDomainObjects.map((obj, index) => (
+                  <li
+                    key={`suggested-domain-${index}`}
+                    className={`${styles.domainListItem} ${styles.suggestedItem}`}
+                    onClick={() => {
+                      // Add suggestion to active list and remove from suggestions
+                      setDomainObjects((prev) => [...prev, obj]);
+                      setSuggestedDomainObjects((prev) =>
+                        prev.filter((item) => item !== obj)
+                      );
+                    }}
+                  >
+                    {obj}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
 
           {/* Add new domain object */}
           <div className={styles.addObjectContainer}>
@@ -258,18 +289,39 @@ const UseCaseUploader: React.FC = () => {
       {/* Actions */}
       {(actions.length > 0 || removedActions.length > 0) && (
         <div className={styles.results}>
-          <h2>Actions:</h2>
+          <h2 className={styles.resultsHeader}>Actions:</h2>
           <ul className={styles.domainList}>
             {actions.map((act, index) => (
               <li
                 key={`active-action-${index}`}
-                className={styles.domainListItem}
+                className={`${styles.domainListItem} ${styles.activeItem}`}
                 onClick={() => toggleAction(act, true)}
               >
                 {act}
               </li>
             ))}
           </ul>
+
+          {suggestedActions.length > 0 && (
+            <div className={styles.results}>
+              <ul className={styles.domainList}>
+                {suggestedActions.map((act, index) => (
+                  <li
+                    key={`suggested-action-${index}`}
+                    className={`${styles.domainListItem} ${styles.suggestedItem}`}
+                    onClick={() => {
+                      setActions((prev) => [...prev, act]);
+                      setSuggestedActions((prev) =>
+                        prev.filter((item) => item !== act)
+                      );
+                    }}
+                  >
+                    {act}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
 
           {/* Add new action */}
           <div className={styles.addObjectContainer}>

@@ -1,216 +1,224 @@
 .container {
-    background-color: #000000;
-    color: #ffffff;
-    padding: 2rem;
-    border-radius: 8px;
-    max-width: 60rem;
-    margin: 2rem auto;
-    font-family: 'Arial', sans-serif;
-    border: 4px solid #ffffff;
+  background-color: #000000;
+  color: #ffffff;
+  padding: 2rem;
+  border-radius: 8px;
+  max-width: 60rem;
+  margin: 2rem auto;
+  font-family: "Arial", sans-serif;
+  border: 4px solid #ffffff;
 }
 
 .title {
-    text-align: center;
-    margin-bottom: 1.5rem;
+  text-align: center;
+  margin-bottom: 1.5rem;
 }
 
 .tabButtons {
-    display: flex;
-    justify-content: center;
-    margin-bottom: 1rem;
+  display: flex;
+  justify-content: center;
+  margin-bottom: 1rem;
 }
 
 .tabButton {
-    background-color: #1e1e1e;
-    border: none;
-    color: #fff;
-    padding: 0.5rem 1.5rem;
-    margin: 0 0.5rem;
-    border-radius: 4px;
-    cursor: pointer;
-    transition: background-color 0.3s ease;
+  background-color: #1e1e1e;
+  border: none;
+  color: #fff;
+  padding: 0.5rem 1.5rem;
+  margin: 0 0.5rem;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
 }
 
 .tabButton:hover:not(:disabled) {
-    background-color: #333;
+  background-color: #333;
 }
 
 .tabButton:disabled {
-    opacity: 0.6;
-    cursor: default;
+  opacity: 0.6;
+  cursor: default;
 }
 
 .active {
-    background-color: #6200ee;
+  background-color: #6200ee;
 }
 
 .form {
-    width: 100%;
-    display: flex;
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 0.5rem;
-    margin-bottom: 1rem;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
 }
 
 .textarea {
-    width: 100%;
-    min-height: 300px;
-    padding: 0.75rem;
-    border-radius: 4px;
-    border: 1px solid #444;
-    background-color: #1e1e1e;
-    color: #fff;
-    box-sizing: border-box;
-    max-width: 100%;
-    resize: vertical;
-    margin-left: auto;
-    margin-right: auto;
-    display: block;
+  width: 100%;
+  min-height: 300px;
+  padding: 0.75rem;
+  border-radius: 4px;
+  border: 1px solid #444;
+  background-color: #1e1e1e;
+  color: #fff;
+  box-sizing: border-box;
+  max-width: 100%;
+  resize: vertical;
+  margin-left: auto;
+  margin-right: auto;
+  display: block;
 }
 
-
 .fileInput {
-    color: #fff;
+  color: #fff;
 }
 
 .submitButton {
-    background-color: #6200ee;
-    border: none;
-    color: #fff;
-    padding: 0.5rem 1rem;
-    border-radius: 4px;
-    cursor: pointer;
-    transition: background-color 0.3s ease;
-    display: block;
-    align-self: center;
+  background-color: #6200ee;
+  border: none;
+  color: #fff;
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+  display: block;
+  align-self: center;
 }
 
 /* Disabled submit button style */
 .submitButton:disabled {
-    background-color: #444;
-    opacity: 0.6;
-    cursor: not-allowed;
+  background-color: #444;
+  opacity: 0.6;
+  cursor: not-allowed;
 }
 
 .submitButton:hover:not(:disabled) {
-    background-color: #7e3ff2;
+  background-color: #7e3ff2;
 }
 
 .error {
-    color: #ff6b6b;
-    text-align: left;
-    margin-top: 1rem;
+  color: #ff6b6b;
+  text-align: left;
+  margin-top: 1rem;
 }
 
 .results {
-    margin-top: 1.5rem;
+  margin-top: 1.5rem;
 }
 
 /* Active domain list styling */
 .domainList {
-    list-style-type: none;
-    padding: 0;
-    margin: 0;
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.5rem;
+  list-style-type: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
 }
 
 /* Removed items are in a separate list with a top margin */
 .removedList {
-    list-style-type: none;
-    padding: 0;
-    margin: 1rem 0 0 0; /* gap between active and removed items */
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.5rem;
+  list-style-type: none;
+  padding: 0;
+  margin: 1rem 0 0 0; /* gap between active and removed items */
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
 }
 
 .domainListItem {
-    display: inline-block;
-    background-color: #1e1e1e;
-    padding: 0.5rem;
-    border-radius: 4px;
-    cursor: pointer;
-    transition: text-decoration 0.2s ease;
+  display: inline-block;
+  background-color: #1e1e1e;
+  padding: 0.5rem;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: text-decoration 0.2s ease;
 }
 
 /* Hover effect only for active items */
 .domainList li:not(.removed):hover {
-    text-decoration: line-through;
+  text-decoration: line-through;
 }
 
 /* Removed items have a red background and no hover effect */
 .removed {
-    background-color: #8a1717;
-    text-decoration: none !important;
+  background-color: #8a1717;
+  text-decoration: none !important;
 }
 
 /* Deleted list header styling */
 .deletedHeader {
-    display: inline-flex;
-    align-items: center;
-    margin-top: 1rem;
-    cursor: pointer;
-    font-size: 1.2rem;
+  display: inline-flex;
+  align-items: center;
+  margin-top: 1rem;
+  cursor: pointer;
+  font-size: 1.2rem;
 }
 
 .deletedHeader .dropdownIcon {
-    margin-left: 0.5rem;
-    font-size: 1.2rem;
+  margin-left: 0.5rem;
+  font-size: 1.2rem;
 }
 
 .addObjectContainer {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.5rem;
-    margin-top: 0.5rem;
-    align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+  align-items: center;
 }
 
 .addObjectInput {
-    background-color: #1e1e1e;
-    border: 1px solid #444;
-    color: #fff;
-    border-radius: 4px;
-    padding: 0.5rem;
-    width: auto;
+  background-color: #1e1e1e;
+  border: 1px solid #444;
+  color: #fff;
+  border-radius: 4px;
+  padding: 0.5rem;
+  width: auto;
 }
 
 .addObjectButton {
-    background-color: #28a745;
-    border: none;
-    color: #fff;
-    padding: 0.5rem 1rem;
-    border-radius: 4px;
-    cursor: pointer;
-    transition: background-color 0.3s ease;
-    width: auto;
+  background-color: #28a745;
+  border: none;
+  color: #fff;
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+  width: auto;
 }
 
 .addObjectButton:hover {
-    background-color: #2ecc71;
+  background-color: #2ecc71;
 }
 
 .finalizeButton {
-    margin-top: 1rem;
-    background-color: #555;
-    border: none;
-    color: #fff;
-    padding: 0.5rem 1rem;
-    border-radius: 4px;
-    cursor: pointer;
+  margin-top: 1rem;
+  background-color: #555;
+  border: none;
+  color: #fff;
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  cursor: pointer;
 }
 
 .finalizeButton:hover {
-    background-color: #999;
+  background-color: #999;
 }
 
 body {
-    background-color: #000000;
-    margin: 0;
-    padding: 0;
-    font-family: 'Arial', sans-serif;
-    color: #ffffff;
+  background-color: #000000;
+  margin: 0;
+  padding: 0;
+  font-family: "Arial", sans-serif;
+  color: #ffffff;
+}
+
+.activeItem {
+  background-color: #28a745;
+}
+
+.suggestedItem {
+  background-color: #808080;
+  text-decoration: none !important;
 }
