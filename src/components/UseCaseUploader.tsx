@@ -11,6 +11,7 @@ interface UseCaseResponse {
 
 const UseCaseUploader: React.FC = () => {
   const [description, setDescription] = useState("");
+  const [customPrompt, setCustomPrompt] = useState("");
   const [file, setFile] = useState<File | null>(null);
   const [domainObjects, setDomainObjects] = useState<string[]>([]);
   const [removedDomainObjects, setRemovedDomainObjects] = useState<string[]>(
@@ -44,7 +45,7 @@ const UseCaseUploader: React.FC = () => {
     try {
       const response = await axios.post<UseCaseResponse>(
         "https://spec2testbe-production.up.railway.app/api/usecase-service/v1/usecases/text",
-        { description }
+        { description, customPrompt }
       );
       setDomainObjects(response.data.domainObjects || []);
       setSuggestedDomainObjects(response.data.suggestedDomainObjects || []);
@@ -72,6 +73,9 @@ const UseCaseUploader: React.FC = () => {
     try {
       const formData = new FormData();
       formData.append("file", file);
+      if (customPrompt.trim()) {
+        formData.append("customPrompt", customPrompt);
+      }
 
       const response = await axios.post<UseCaseResponse>(
         "https://spec2testbe-production.up.railway.app/api/usecase-service/v1/usecases/upload",
@@ -173,6 +177,13 @@ const UseCaseUploader: React.FC = () => {
             onChange={(e) => setDescription(e.target.value)}
             placeholder="Enter your requirements here..."
           />
+          <input
+            type="text"
+            className={styles.customPromptInput}
+            value={customPrompt}
+            onChange={(e) => setCustomPrompt(e.target.value)}
+            placeholder="Enter your custom prompt (optional)"
+          />
           <button
             type="submit"
             disabled={loading}
@@ -190,6 +201,13 @@ const UseCaseUploader: React.FC = () => {
             accept="application/pdf"
             onChange={onFileChange}
             className={styles.fileInput}
+          />
+          <input
+            type="text"
+            className={styles.customPromptInput}
+            value={customPrompt}
+            onChange={(e) => setCustomPrompt(e.target.value)}
+            placeholder="Enter your custom prompt (optional)"
           />
           <button
             type="submit"
