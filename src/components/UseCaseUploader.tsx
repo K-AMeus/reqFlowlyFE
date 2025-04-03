@@ -3,43 +3,33 @@ import axios from "axios";
 import styles from "../styles/UseCaseUploader.module.css";
 
 interface UseCaseResponse {
-  domainObjects: string[];
-  suggestedDomainObjects: string[];
-  actions: string[];
-  suggestedActions: string[];
+  domainObjects: { [key: string]: string[] };
+  suggestedDomainObjects: { [key: string]: string[] };
 }
 
 const UseCaseUploader: React.FC = () => {
   const [description, setDescription] = useState("");
   const [customPrompt, setCustomPrompt] = useState("");
   const [file, setFile] = useState<File | null>(null);
-  const [domainObjects, setDomainObjects] = useState<string[]>([]);
-  const [removedDomainObjects, setRemovedDomainObjects] = useState<string[]>(
-    []
-  );
-  const [actions, setActions] = useState<string[]>([]);
-  const [removedActions, setRemovedActions] = useState<string[]>([]);
+  const [domainObjects, setDomainObjects] = useState<{
+    [key: string]: string[];
+  }>({});
+  const [removedDomainObjects, setRemovedDomainObjects] = useState<{
+    [key: string]: string[];
+  }>({});
+  const [suggestedDomainObjects, setSuggestedDomainObjects] = useState<{
+    [key: string]: string[];
+  }>({});
   const [newDomainObject, setNewDomainObject] = useState("");
-  const [newAction, setNewAction] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [selectedTab, setSelectedTab] = useState<"text" | "file">("text");
-  const [showDeletedDomainObjects, setShowDeletedDomainObjects] =
-    useState(false);
-  const [showDeletedActions, setShowDeletedActions] = useState(false);
-  const [suggestedDomainObjects, setSuggestedDomainObjects] = useState<
-    string[]
-  >([]);
-  const [suggestedActions, setSuggestedActions] = useState<string[]>([]);
 
-  /** Handle text input submission */
   const handleTextSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setError("");
-    setDomainObjects([]);
-    setRemovedDomainObjects([]);
-    setActions([]);
-    setRemovedActions([]);
+    setDomainObjects({});
+    setRemovedDomainObjects({});
     setLoading(true);
 
     try {
@@ -47,11 +37,9 @@ const UseCaseUploader: React.FC = () => {
         "https://spec2testbe-production.up.railway.app/api/usecase-service/v1/usecases/text",
         { description, customPrompt }
       );
-      setDomainObjects(response.data.domainObjects || []);
-      setSuggestedDomainObjects(response.data.suggestedDomainObjects || []);
-      setActions(response.data.actions || []);
-      setSuggestedActions(response.data.suggestedActions || []);
-    } catch (err: any) {
+      setDomainObjects(response.data.domainObjects || {});
+      setSuggestedDomainObjects(response.data.suggestedDomainObjects || {});
+    } catch (err: unknown) {
       console.error(err);
       setError("Error processing text input.");
     } finally {
@@ -59,15 +47,12 @@ const UseCaseUploader: React.FC = () => {
     }
   };
 
-  /** Handle PDF file submission */
   const handleFileSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!file) return;
     setError("");
-    setDomainObjects([]);
-    setRemovedDomainObjects([]);
-    setActions([]);
-    setRemovedActions([]);
+    setDomainObjects({});
+    setRemovedDomainObjects({});
     setLoading(true);
 
     try {
@@ -86,12 +71,9 @@ const UseCaseUploader: React.FC = () => {
           },
         }
       );
-
-      setDomainObjects(response.data.domainObjects || []);
-      setActions(response.data.actions || []);
-      setSuggestedDomainObjects(response.data.suggestedDomainObjects || []);
-      setSuggestedActions(response.data.suggestedActions || []);
-    } catch (err: any) {
+      setDomainObjects(response.data.domainObjects || {});
+      setSuggestedDomainObjects(response.data.suggestedDomainObjects || {});
+    } catch (err: unknown) {
       console.error(err);
       setError("Error processing file upload.");
     } finally {
@@ -99,48 +81,44 @@ const UseCaseUploader: React.FC = () => {
     }
   };
 
-  /** File input handler */
   const onFileChange = (e: ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
       setFile(e.target.files[0]);
     }
   };
 
-  /** Toggle domain object: active -> removed, removed -> active */
-  const toggleDomainObject = (item: string, fromActive: boolean) => {
-    if (fromActive) {
-      setDomainObjects((prev) => prev.filter((i) => i !== item));
-      setRemovedDomainObjects((prev) => [...prev, item]);
-    } else {
-      setRemovedDomainObjects((prev) => prev.filter((i) => i !== item));
-      setDomainObjects((prev) => [...prev, item]);
+  const toggleDomainObject = (domain: string) => {
+    if (domain in domainObjects) {
+      // Move from active to removed
+      setRemovedDomainObjects((prev) => ({
+        ...prev,
+        [domain]: [...domainObjects[domain]],
+      }));
+      setDomainObjects((prev) => {
+        const newState = { ...prev };
+        delete newState[domain];
+        return newState;
+      });
+    } else if (domain in removedDomainObjects) {
+      setDomainObjects((prev) => ({
+        ...prev,
+        [domain]: [...removedDomainObjects[domain]],
+      }));
+      setRemovedDomainObjects((prev) => {
+        const newState = { ...prev };
+        delete newState[domain];
+        return newState;
+      });
     }
   };
 
-  /** Toggle action: active -> removed, removed -> active */
-  const toggleAction = (item: string, fromActive: boolean) => {
-    if (fromActive) {
-      setActions((prev) => prev.filter((i) => i !== item));
-      setRemovedActions((prev) => [...prev, item]);
-    } else {
-      setRemovedActions((prev) => prev.filter((i) => i !== item));
-      setActions((prev) => [...prev, item]);
-    }
-  };
-
-  /** Add a new domain object to the list */
   const addDomainObject = () => {
     if (newDomainObject.trim()) {
-      setDomainObjects((prev) => [...prev, newDomainObject.trim()]);
+      setDomainObjects((prev) => ({
+        ...prev,
+        [newDomainObject.trim()]: [],
+      }));
       setNewDomainObject("");
-    }
-  };
-
-  /** Add a new action to the list */
-  const addAction = () => {
-    if (newAction.trim()) {
-      setActions((prev) => [...prev, newAction.trim()]);
-      setNewAction("");
     }
   };
 
@@ -221,168 +199,129 @@ const UseCaseUploader: React.FC = () => {
 
       {error && <p className={styles.error}>{error}</p>}
 
-      {/* Domain Objects */}
-      {(domainObjects.length > 0 || removedDomainObjects.length > 0) && (
+      {Object.keys(domainObjects).length > 0 && (
         <div className={styles.results}>
           <h2>Domain Objects:</h2>
-          <ul className={styles.domainList}>
-            {domainObjects.map((obj, index) => (
-              <li
-                key={`active-${index}`}
-                className={`${styles.domainListItem} ${styles.activeItem}`}
-                onClick={() => toggleDomainObject(obj, true)}
-              >
-                {obj}
-              </li>
-            ))}
-          </ul>
-
-          {suggestedDomainObjects.length > 0 && (
-            <div className={styles.results}>
-              <ul className={styles.domainList}>
-                {suggestedDomainObjects.map((obj, index) => (
-                  <li
-                    key={`suggested-domain-${index}`}
-                    className={`${styles.domainListItem} ${styles.suggestedItem}`}
-                    onClick={() => {
-                      // Add suggestion to active list and remove from suggestions
-                      setDomainObjects((prev) => [...prev, obj]);
-                      setSuggestedDomainObjects((prev) =>
-                        prev.filter((item) => item !== obj)
-                      );
-                    }}
+          <table className={styles.domainTable}>
+            <thead>
+              <tr>
+                <th>Domain Object</th>
+                <th>Attributes</th>
+              </tr>
+            </thead>
+            <tbody>
+              {Object.entries(domainObjects).map(
+                ([domain, attributes], index) => (
+                  <tr
+                    key={`domain-${index}`}
+                    className={styles.domainRow}
+                    onClick={() => toggleDomainObject(domain)}
                   >
-                    {obj}
-                  </li>
-                ))}
-              </ul>
-            </div>
-          )}
-
-          {/* Add new domain object */}
-          <div className={styles.addObjectContainer}>
-            <input
-              type="text"
-              value={newDomainObject}
-              onChange={(e) => setNewDomainObject(e.target.value)}
-              placeholder="Add new domain object..."
-              className={styles.addObjectInput}
-            />
-            <button
-              onClick={addDomainObject}
-              className={styles.addObjectButton}
-            >
-              Add
-            </button>
-          </div>
-
-          <h2
-            className={styles.deletedHeader}
-            onClick={() => setShowDeletedDomainObjects((prev) => !prev)}
-          >
-            Deleted Domain Objects:
-            <span className={styles.dropdownIcon}>
-              {showDeletedDomainObjects ? "▼" : "▲"}
-            </span>
-          </h2>
-          {showDeletedDomainObjects && removedDomainObjects.length > 0 && (
-            <ul className={styles.removedList}>
-              {removedDomainObjects.map((obj, index) => (
-                <li
-                  key={`removed-${index}`}
-                  className={`${styles.domainListItem} ${styles.removed}`}
-                  onClick={() => toggleDomainObject(obj, false)}
-                >
-                  {obj}
-                </li>
-              ))}
-            </ul>
-          )}
+                    <td>{domain}</td>
+                    <td>
+                      {attributes.length > 0
+                        ? attributes.join(", ")
+                        : "No attributes"}
+                    </td>
+                  </tr>
+                )
+              )}
+            </tbody>
+          </table>
         </div>
       )}
-      <br />
-      <hr />
-      <hr />
 
-      {/* Actions */}
-      {(actions.length > 0 || removedActions.length > 0) && (
+      {Object.keys(suggestedDomainObjects).length > 0 && (
         <div className={styles.results}>
-          <h2 className={styles.resultsHeader}>Actions:</h2>
-          <ul className={styles.domainList}>
-            {actions.map((act, index) => (
-              <li
-                key={`active-action-${index}`}
-                className={`${styles.domainListItem} ${styles.activeItem}`}
-                onClick={() => toggleAction(act, true)}
-              >
-                {act}
-              </li>
-            ))}
-          </ul>
-
-          {suggestedActions.length > 0 && (
-            <div className={styles.results}>
-              <ul className={styles.domainList}>
-                {suggestedActions.map((act, index) => (
-                  <li
-                    key={`suggested-action-${index}`}
-                    className={`${styles.domainListItem} ${styles.suggestedItem}`}
+          <h2>Suggested Domain Objects:</h2>
+          <table className={styles.domainTable}>
+            <thead>
+              <tr>
+                <th>Domain Object</th>
+                <th>Attributes</th>
+              </tr>
+            </thead>
+            <tbody>
+              {Object.entries(suggestedDomainObjects).map(
+                ([domain, attributes], index) => (
+                  <tr
+                    key={`suggested-${index}`}
+                    className={`${styles.domainRow} ${styles.suggestedRow}`}
                     onClick={() => {
-                      setActions((prev) => [...prev, act]);
-                      setSuggestedActions((prev) =>
-                        prev.filter((item) => item !== act)
-                      );
+                      setDomainObjects((prev) => ({
+                        ...prev,
+                        [domain]: attributes,
+                      }));
+                      setSuggestedDomainObjects((prev) => {
+                        const newState = { ...prev };
+                        delete newState[domain];
+                        return newState;
+                      });
                     }}
                   >
-                    {act}
-                  </li>
-                ))}
-              </ul>
-            </div>
-          )}
-
-          {/* Add new action */}
-          <div className={styles.addObjectContainer}>
-            <input
-              type="text"
-              value={newAction}
-              onChange={(e) => setNewAction(e.target.value)}
-              placeholder="Add new action..."
-              className={styles.addObjectInput}
-            />
-            <button onClick={addAction} className={styles.addObjectButton}>
-              Add
-            </button>
-          </div>
-
-          <h2
-            className={styles.deletedHeader}
-            onClick={() => setShowDeletedActions((prev) => !prev)}
-          >
-            Deleted Actions:
-            <span className={styles.dropdownIcon}>
-              {showDeletedActions ? "▼" : "▲"}
-            </span>
-          </h2>
-          {showDeletedActions && removedActions.length > 0 && (
-            <ul className={styles.removedList}>
-              {removedActions.map((act, index) => (
-                <li
-                  key={`removed-action-${index}`}
-                  className={`${styles.domainListItem} ${styles.removed}`}
-                  onClick={() => toggleAction(act, false)}
-                >
-                  {act}
-                </li>
-              ))}
-            </ul>
-          )}
+                    <td>{domain}</td>
+                    <td>
+                      {attributes.length > 0
+                        ? attributes.join(", ")
+                        : "No attributes"}
+                    </td>
+                  </tr>
+                )
+              )}
+            </tbody>
+          </table>
         </div>
       )}
 
-      {(domainObjects.length > 0 || actions.length > 0) && (
+      {Object.keys(removedDomainObjects).length > 0 && (
+        <div className={styles.results}>
+          <h2>Removed Domain Objects:</h2>
+          <table className={styles.domainTable}>
+            <thead>
+              <tr>
+                <th>Domain Object</th>
+                <th>Attributes</th>
+              </tr>
+            </thead>
+            <tbody>
+              {Object.entries(removedDomainObjects).map(
+                ([domain, attributes], index) => (
+                  <tr
+                    key={`removed-${index}`}
+                    className={`${styles.domainRow} ${styles.removedRow}`}
+                    onClick={() => toggleDomainObject(domain)}
+                  >
+                    <td>{domain}</td>
+                    <td>
+                      {attributes.length > 0
+                        ? attributes.join(", ")
+                        : "No attributes"}
+                    </td>
+                  </tr>
+                )
+              )}
+            </tbody>
+          </table>
+        </div>
+      )}
+
+      <div className={styles.addObjectContainer}>
+        <input
+          type="text"
+          value={newDomainObject}
+          onChange={(e) => setNewDomainObject(e.target.value)}
+          placeholder="Add new domain object..."
+          className={styles.addObjectInput}
+        />
+        <button onClick={addDomainObject} className={styles.addObjectButton}>
+          Add
+        </button>
+      </div>
+
+      {(Object.keys(domainObjects).length > 0 ||
+        Object.keys(removedDomainObjects).length > 0) && (
         <button className={styles.finalizeButton} disabled={loading}>
-          {loading ? "Finalizing..." : "Finalize Domain Objects & Actions"}
+          {loading ? "Finalizing..." : "Finalize Domain Objects"}
         </button>
       )}
     </div>

@@ -85,7 +85,6 @@
   align-self: center;
 }
 
-/* Disabled submit button style */
 .submitButton:disabled {
   background-color: #444;
   opacity: 0.6;
@@ -103,10 +102,21 @@
 }
 
 .results {
-  margin-top: 1.5rem;
+  margin-top: 2rem;
+  padding: 1rem;
+  border-radius: 4px;
+  background-color: #121212;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+  border: 1px solid #444;
 }
 
-/* Active domain list styling */
+.results h2 {
+  margin-top: 0;
+  margin-bottom: 1rem;
+  color: #ffffff;
+  font-size: 1.5rem;
+}
+
 .domainList {
   list-style-type: none;
   padding: 0;
@@ -116,11 +126,10 @@
   gap: 0.5rem;
 }
 
-/* Removed items are in a separate list with a top margin */
 .removedList {
   list-style-type: none;
   padding: 0;
-  margin: 1rem 0 0 0; /* gap between active and removed items */
+  margin: 1rem 0 0 0;
   display: flex;
   flex-wrap: wrap;
   gap: 0.5rem;
@@ -135,18 +144,15 @@
   transition: text-decoration 0.2s ease;
 }
 
-/* Hover effect only for active items */
 .domainList li:not(.removed):hover {
   text-decoration: line-through;
 }
 
-/* Removed items have a red background and no hover effect */
 .removed {
   background-color: #8a1717;
   text-decoration: none !important;
 }
 
-/* Deleted list header styling */
 .deletedHeader {
   display: inline-flex;
   align-items: center;
@@ -231,4 +237,96 @@ body {
   border: 1px solid #444;
   background-color: #1e1e1e;
   color: #fff;
+}
+
+.domainTable {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 1rem;
+  margin-bottom: 2rem;
+  box-shadow: 0 2px 3px rgba(0, 0, 0, 0.3);
+  color: #ffffff;
+  background-color: #1e1e1e;
+  border: 1px solid #444;
+}
+
+.domainTable th,
+.domainTable td {
+  border: 1px solid #444;
+  padding: 12px 15px;
+  text-align: left;
+  color: #ffffff;
+}
+
+.domainTable th {
+  background-color: #333333;
+  color: #ffffff;
+  font-weight: 600;
+  border-bottom: 2px solid #555;
+}
+
+.domainTable tr:nth-child(even) {
+  background-color: #2a2a2a;
+}
+
+.domainRow {
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.domainRow:hover {
+  background-color: #3a3a3a !important;
+}
+
+.suggestedRow {
+  background-color: inherit !important;
+}
+
+.suggestedRow td:first-child {
+  border-left: none !important;
+}
+
+.suggestedRow:hover {
+  background-color: #3a3a3a !important;
+}
+
+tr.suggestedRow:hover td {
+  text-decoration: none !important;
+  color: #7ed321 !important;
+  transition: all 0.2s ease;
+}
+
+.removedRow {
+  background-color: #3a1a1a !important;
+}
+
+.removedRow td {
+  text-decoration: line-through !important;
+  color: #aaa !important;
+}
+
+.removedRow:hover {
+  background-color: #4d2626 !important;
+}
+
+.removedRow:hover td {
+  text-decoration: none !important;
+  color: #7ed321 !important;
+  transition: all 0.2s ease;
+}
+
+.domainRow:not(.removedRow):hover td {
+  text-decoration: line-through;
+  color: #ff6b6b !important;
+  transition: all 0.2s ease;
+}
+
+table .suggestedRow:hover td {
+  text-decoration: none !important;
+  color: #7ed321 !important;
+}
+
+.domainTable tr.suggestedRow:hover td {
+  text-decoration: none !important;
+  color: #7ed321 !important;
 }
