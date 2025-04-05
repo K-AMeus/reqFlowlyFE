@@ -10,7 +10,7 @@ const Footer: React.FC = () => {
       <div className={styles.container}>
         <div className={styles.footerContent}>
           <div className={styles.footerSection}>
-            <div className={styles.footerLogo}>Flowreq</div>
+            <div className={styles.footerLogo}>ReqFlowly</div>
             <p className={styles.footerDescription}>
               Transform requirements into use cases and test cases with our
               AI-powered platform.
@@ -83,7 +83,7 @@ const Footer: React.FC = () => {
 
         <div className={styles.footerBottom}>
           <div className={styles.copyright}>
-            &copy; {currentYear} Flowreq. All rights reserved.
+            &copy; {currentYear} ReqFlowly. All rights reserved.
           </div>
           <div className={styles.socialLinks}>
             <a href="#" className={styles.socialLink} aria-label="LinkedIn">

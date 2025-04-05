@@ -21,7 +21,7 @@ const LandingPage: React.FC = () => {
             Transform Requirements into Use Cases & Test Cases
           </h1>
           <p className={styles.heroDescription}>
-            Flowreq uses advanced AI to generate comprehensive use cases and
+            ReqFlowly uses advanced AI to generate comprehensive use cases and
             test cases from your written specifications, saving time and
             improving overall quality.
           </p>
@@ -47,7 +47,7 @@ const LandingPage: React.FC = () => {
                   <span className={styles.browserButton}></span>
                 </div>
                 <div className={styles.browserAddressBar}>
-                  <span className={styles.browserUrl}>flowreq.io/app</span>
+                  <span className={styles.browserUrl}>reqflowly.io/app</span>
                 </div>
               </div>
               <div className={styles.browserContent}>

@@ -1,4 +1,4 @@
-import React, { useState, ChangeEvent } from "react";
+import React, { useState, ChangeEvent, useEffect } from "react";
 import axios from "axios";
 import styles from "../styles/UseCaseUploader.module.css";
 
@@ -6,6 +6,37 @@ interface UseCaseResponse {
   domainObjects: { [key: string]: string[] };
   suggestedDomainObjects: { [key: string]: string[] };
 }
+
+const DeleteIcon = ({ onClick }: { onClick: () => void }) => (
+  <div className={styles.deleteIcon} onClick={onClick}>
+    <svg
+      width="16"
+      height="16"
+      viewBox="0 0 24 24"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+    >
+      <path
+        d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"
+        fill="currentColor"
+      />
+    </svg>
+  </div>
+);
+
+const AddIcon = ({ onClick }: { onClick: () => void }) => (
+  <div className={styles.addIcon} onClick={onClick}>
+    <svg
+      width="16"
+      height="16"
+      viewBox="0 0 24 24"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+    >
+      <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z" fill="currentColor" />
+    </svg>
+  </div>
+);
 
 const UseCaseUploader: React.FC = () => {
   const [description, setDescription] = useState("");
@@ -24,21 +55,38 @@ const UseCaseUploader: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [selectedTab, setSelectedTab] = useState<"text" | "file">("text");
+  const [activeView, setActiveView] = useState<"input" | "results">("input");
+  const [resultsReady, setResultsReady] = useState(false);
+
+  useEffect(() => {
+    if (
+      !loading &&
+      resultsReady &&
+      (Object.keys(domainObjects).length > 0 ||
+        Object.keys(suggestedDomainObjects).length > 0)
+    ) {
+      setActiveView("results");
+      setResultsReady(false);
+    }
+  }, [loading, resultsReady, domainObjects, suggestedDomainObjects]);
 
   const handleTextSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setError("");
     setDomainObjects({});
     setRemovedDomainObjects({});
+    setSuggestedDomainObjects({});
     setLoading(true);
+    setResultsReady(false);
 
     try {
       const response = await axios.post<UseCaseResponse>(
-        "http://localhost:8080/api/usecase-service/v1/usecases/text",
+        "https://spec2testbe-production.up.railway.app/api/usecase-service/v1/usecases/text",
         { description, customPrompt }
       );
       setDomainObjects(response.data.domainObjects || {});
       setSuggestedDomainObjects(response.data.suggestedDomainObjects || {});
+      setResultsReady(true);
     } catch (err: unknown) {
       console.error(err);
       setError("Error processing text input.");
@@ -53,7 +101,9 @@ const UseCaseUploader: React.FC = () => {
     setError("");
     setDomainObjects({});
     setRemovedDomainObjects({});
+    setSuggestedDomainObjects({});
     setLoading(true);
+    setResultsReady(false);
 
     try {
       const formData = new FormData();
@@ -63,7 +113,7 @@ const UseCaseUploader: React.FC = () => {
       }
 
       const response = await axios.post<UseCaseResponse>(
-        "http://localhost:8080/api/usecase-service/v1/usecases/upload",
+        "https://spec2testbe-production.up.railway.app/api/usecase-service/v1/usecases/upload",
         formData,
         {
           headers: {
@@ -73,6 +123,7 @@ const UseCaseUploader: React.FC = () => {
       );
       setDomainObjects(response.data.domainObjects || {});
       setSuggestedDomainObjects(response.data.suggestedDomainObjects || {});
+      setResultsReady(true);
     } catch (err: unknown) {
       console.error(err);
       setError("Error processing file upload.");
@@ -121,207 +172,299 @@ const UseCaseUploader: React.FC = () => {
     }
   };
 
+  const hasResults =
+    Object.keys(domainObjects).length > 0 ||
+    Object.keys(suggestedDomainObjects).length > 0 ||
+    Object.keys(removedDomainObjects).length > 0;
+
   return (
     <div className={styles.container}>
-      <h1 className={styles.title}>Flowreq Use Case & Test Case Generator</h1>
+      <div className={styles.diagonalLine}></div>
+      <div className={styles.diagonalLine}></div>
+      <div className={styles.diagonalLine}></div>
+      <div className={styles.diagonalLine}></div>
+      <h1 className={styles.title}>ReqFlowly Use Case & Test Case Generator</h1>
 
-      <div className={styles.tabButtons}>
-        <button
-          onClick={() => setSelectedTab("text")}
-          disabled={selectedTab === "text"}
-          className={`${styles.tabButton} ${
-            selectedTab === "text" ? styles.active : ""
-          }`}
-        >
-          Text Input
-        </button>
-        <button
-          onClick={() => setSelectedTab("file")}
-          disabled={selectedTab === "file"}
-          className={`${styles.tabButton} ${
-            selectedTab === "file" ? styles.active : ""
-          }`}
-        >
-          PDF Upload
-        </button>
-      </div>
-
-      {selectedTab === "text" && (
-        <form onSubmit={handleTextSubmit} className={styles.form}>
-          <textarea
-            className={styles.textarea}
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
-            placeholder="Enter your requirements here..."
-          />
-          <input
-            type="text"
-            className={styles.customPromptInput}
-            value={customPrompt}
-            onChange={(e) => setCustomPrompt(e.target.value)}
-            placeholder="Enter your custom prompt (optional)"
-          />
+      {hasResults && (
+        <div className={styles.mainTabs}>
           <button
-            type="submit"
-            disabled={loading}
-            className={styles.submitButton}
+            onClick={() => setActiveView("input")}
+            className={`${styles.mainTab} ${
+              activeView === "input" ? styles.activeMainTab : ""
+            }`}
           >
-            {loading ? "Processing..." : "Submit Text"}
+            Input
           </button>
-        </form>
-      )}
-
-      {selectedTab === "file" && (
-        <form onSubmit={handleFileSubmit} className={styles.form}>
-          <input
-            type="file"
-            accept="application/pdf"
-            onChange={onFileChange}
-            className={styles.fileInput}
-          />
-          <input
-            type="text"
-            className={styles.customPromptInput}
-            value={customPrompt}
-            onChange={(e) => setCustomPrompt(e.target.value)}
-            placeholder="Enter your custom prompt (optional)"
-          />
           <button
-            type="submit"
-            disabled={loading || !file}
-            className={styles.submitButton}
+            onClick={() => setActiveView("results")}
+            className={`${styles.mainTab} ${
+              activeView === "results" ? styles.activeMainTab : ""
+            }`}
           >
-            {loading ? "Processing..." : "Upload PDF"}
+            Results
           </button>
-        </form>
-      )}
-
-      {error && <p className={styles.error}>{error}</p>}
-
-      {Object.keys(domainObjects).length > 0 && (
-        <div className={styles.results}>
-          <h2>Domain Objects:</h2>
-          <table className={styles.domainTable}>
-            <thead>
-              <tr>
-                <th>Domain Object</th>
-                <th>Attributes</th>
-              </tr>
-            </thead>
-            <tbody>
-              {Object.entries(domainObjects).map(
-                ([domain, attributes], index) => (
-                  <tr
-                    key={`domain-${index}`}
-                    className={styles.domainRow}
-                    onClick={() => toggleDomainObject(domain)}
-                  >
-                    <td>{domain}</td>
-                    <td>
-                      {attributes.length > 0
-                        ? attributes.join(", ")
-                        : "No attributes"}
-                    </td>
-                  </tr>
-                )
-              )}
-            </tbody>
-          </table>
         </div>
       )}
 
-      {Object.keys(suggestedDomainObjects).length > 0 && (
-        <div className={styles.results}>
-          <h2>Suggested Domain Objects:</h2>
-          <table className={styles.domainTable}>
-            <thead>
-              <tr>
-                <th>Domain Object</th>
-                <th>Attributes</th>
-              </tr>
-            </thead>
-            <tbody>
-              {Object.entries(suggestedDomainObjects).map(
-                ([domain, attributes], index) => (
-                  <tr
-                    key={`suggested-${index}`}
-                    className={`${styles.domainRow} ${styles.suggestedRow}`}
-                    onClick={() => {
-                      setDomainObjects((prev) => ({
-                        ...prev,
-                        [domain]: attributes,
-                      }));
-                      setSuggestedDomainObjects((prev) => {
-                        const newState = { ...prev };
-                        delete newState[domain];
-                        return newState;
-                      });
-                    }}
-                  >
-                    <td>{domain}</td>
-                    <td>
-                      {attributes.length > 0
-                        ? attributes.join(", ")
-                        : "No attributes"}
-                    </td>
-                  </tr>
-                )
-              )}
-            </tbody>
-          </table>
-        </div>
+      {activeView === "input" && (
+        <>
+          <div className={styles.tabButtons}>
+            <button
+              onClick={() => setSelectedTab("text")}
+              disabled={selectedTab === "text"}
+              className={`${styles.tabButton} ${
+                selectedTab === "text" ? styles.active : ""
+              }`}
+            >
+              Text Input
+            </button>
+            <button
+              onClick={() => setSelectedTab("file")}
+              disabled={selectedTab === "file"}
+              className={`${styles.tabButton} ${
+                selectedTab === "file" ? styles.active : ""
+              }`}
+            >
+              PDF Upload
+            </button>
+          </div>
+
+          {selectedTab === "text" && (
+            <form onSubmit={handleTextSubmit} className={styles.form}>
+              <textarea
+                className={styles.textarea}
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                placeholder="Enter your requirements here..."
+              />
+              <input
+                type="text"
+                className={styles.customPromptInput}
+                value={customPrompt}
+                onChange={(e) => setCustomPrompt(e.target.value)}
+                placeholder="Enter your custom prompt (optional)"
+              />
+              <button
+                type="submit"
+                disabled={loading}
+                className={styles.submitButton}
+              >
+                {loading ? (
+                  <>
+                    <span className={styles.loading}></span>
+                    Processing...
+                  </>
+                ) : (
+                  "Submit Text"
+                )}
+              </button>
+            </form>
+          )}
+
+          {selectedTab === "file" && (
+            <form onSubmit={handleFileSubmit} className={styles.form}>
+              <input
+                type="file"
+                accept="application/pdf"
+                onChange={onFileChange}
+                className={styles.fileInput}
+              />
+              <input
+                type="text"
+                className={styles.customPromptInput}
+                value={customPrompt}
+                onChange={(e) => setCustomPrompt(e.target.value)}
+                placeholder="Enter your custom prompt (optional)"
+              />
+              <button
+                type="submit"
+                disabled={loading || !file}
+                className={styles.submitButton}
+              >
+                {loading ? (
+                  <>
+                    <span className={styles.loading}></span>
+                    Processing...
+                  </>
+                ) : (
+                  "Upload PDF"
+                )}
+              </button>
+            </form>
+          )}
+
+          {error && <p className={styles.error}>{error}</p>}
+        </>
       )}
 
-      {Object.keys(removedDomainObjects).length > 0 && (
-        <div className={styles.results}>
-          <h2>Removed Domain Objects:</h2>
-          <table className={styles.domainTable}>
-            <thead>
-              <tr>
-                <th>Domain Object</th>
-                <th>Attributes</th>
-              </tr>
-            </thead>
-            <tbody>
-              {Object.entries(removedDomainObjects).map(
-                ([domain, attributes], index) => (
-                  <tr
-                    key={`removed-${index}`}
-                    className={`${styles.domainRow} ${styles.removedRow}`}
-                    onClick={() => toggleDomainObject(domain)}
-                  >
-                    <td>{domain}</td>
-                    <td>
-                      {attributes.length > 0
-                        ? attributes.join(", ")
-                        : "No attributes"}
-                    </td>
+      {activeView === "results" && (
+        <div className={styles.resultsView}>
+          {Object.keys(domainObjects).length > 0 && (
+            <div className={styles.results}>
+              <h2>Domain Objects:</h2>
+              <table className={styles.domainTable}>
+                <thead>
+                  <tr>
+                    <th>Domain Object</th>
+                    <th>Attributes</th>
                   </tr>
-                )
+                </thead>
+                <tbody>
+                  {Object.entries(domainObjects).map(
+                    ([domain, attributes], index) => (
+                      <tr key={`domain-${index}`} className={styles.domainRow}>
+                        <td>{domain}</td>
+                        <td style={{ position: "relative" }}>
+                          {attributes.length > 0
+                            ? attributes.join(", ")
+                            : "No attributes"}
+                          <span
+                            style={{
+                              position: "absolute",
+                              right: "12px",
+                              top: "50%",
+                              transform: "translateY(-50%)",
+                            }}
+                          >
+                            <DeleteIcon
+                              onClick={() => toggleDomainObject(domain)}
+                            />
+                          </span>
+                        </td>
+                      </tr>
+                    )
+                  )}
+                </tbody>
+              </table>
+            </div>
+          )}
+
+          {Object.keys(suggestedDomainObjects).length > 0 && (
+            <div className={styles.results}>
+              <h2>Suggested Domain Objects:</h2>
+              <table className={styles.domainTable}>
+                <thead>
+                  <tr>
+                    <th>Domain Object</th>
+                    <th>Attributes</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {Object.entries(suggestedDomainObjects).map(
+                    ([domain, attributes], index) => (
+                      <tr
+                        key={`suggested-${index}`}
+                        className={`${styles.domainRow} ${styles.suggestedRow}`}
+                      >
+                        <td>{domain}</td>
+                        <td style={{ position: "relative" }}>
+                          {attributes.length > 0
+                            ? attributes.join(", ")
+                            : "No attributes"}
+                          <span
+                            style={{
+                              position: "absolute",
+                              right: "12px",
+                              top: "50%",
+                              transform: "translateY(-50%)",
+                            }}
+                          >
+                            <AddIcon
+                              onClick={() => {
+                                setDomainObjects((prev) => ({
+                                  ...prev,
+                                  [domain]: attributes,
+                                }));
+                                setSuggestedDomainObjects((prev) => {
+                                  const newState = { ...prev };
+                                  delete newState[domain];
+                                  return newState;
+                                });
+                              }}
+                            />
+                          </span>
+                        </td>
+                      </tr>
+                    )
+                  )}
+                </tbody>
+              </table>
+            </div>
+          )}
+
+          {Object.keys(removedDomainObjects).length > 0 && (
+            <div className={styles.results}>
+              <h2>Removed Domain Objects:</h2>
+              <table className={styles.domainTable}>
+                <thead>
+                  <tr>
+                    <th>Domain Object</th>
+                    <th>Attributes</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {Object.entries(removedDomainObjects).map(
+                    ([domain, attributes], index) => (
+                      <tr
+                        key={`removed-${index}`}
+                        className={`${styles.domainRow} ${styles.removedRow}`}
+                      >
+                        <td>{domain}</td>
+                        <td style={{ position: "relative" }}>
+                          {attributes.length > 0
+                            ? attributes.join(", ")
+                            : "No attributes"}
+                          <span
+                            style={{
+                              position: "absolute",
+                              right: "12px",
+                              top: "50%",
+                              transform: "translateY(-50%)",
+                            }}
+                          >
+                            <AddIcon
+                              onClick={() => toggleDomainObject(domain)}
+                            />
+                          </span>
+                        </td>
+                      </tr>
+                    )
+                  )}
+                </tbody>
+              </table>
+            </div>
+          )}
+
+          <div className={styles.addObjectContainer}>
+            <input
+              type="text"
+              value={newDomainObject}
+              onChange={(e) => setNewDomainObject(e.target.value)}
+              placeholder="Add new domain object..."
+              className={styles.addObjectInput}
+            />
+            <button
+              onClick={addDomainObject}
+              className={styles.addObjectButton}
+            >
+              Add
+            </button>
+          </div>
+
+          {(Object.keys(domainObjects).length > 0 ||
+            Object.keys(removedDomainObjects).length > 0) && (
+            <button className={styles.finalizeButton} disabled={loading}>
+              {loading ? (
+                <>
+                  <span className={styles.loading}></span>
+                  Finalizing...
+                </>
+              ) : (
+                "Finalize Domain Objects"
               )}
-            </tbody>
-          </table>
+            </button>
+          )}
         </div>
-      )}
-
-      <div className={styles.addObjectContainer}>
-        <input
-          type="text"
-          value={newDomainObject}
-          onChange={(e) => setNewDomainObject(e.target.value)}
-          placeholder="Add new domain object..."
-          className={styles.addObjectInput}
-        />
-        <button onClick={addDomainObject} className={styles.addObjectButton}>
-          Add
-        </button>
-      </div>
-
-      {(Object.keys(domainObjects).length > 0 ||
-        Object.keys(removedDomainObjects).length > 0) && (
-        <button className={styles.finalizeButton} disabled={loading}>
-          {loading ? "Finalizing..." : "Finalize Domain Objects"}
-        </button>
       )}
     </div>
   );

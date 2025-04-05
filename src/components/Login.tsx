@@ -96,7 +96,8 @@ const Login: React.FC = () => {
       setLoading(true);
       await signInWithGoogle();
       navigate("/app");
-    } catch (err) {
+    } catch (error) {
+      console.error(error);
       setError("Failed to sign in with Google");
     } finally {
       setLoading(false);
@@ -113,7 +114,8 @@ const Login: React.FC = () => {
       setLoading(true);
       await resetPassword(email);
       setError("Password reset email sent. Check your inbox.");
-    } catch (err) {
+    } catch (error) {
+      console.error(error);
       setError("Failed to send password reset email");
     } finally {
       setLoading(false);
@@ -122,6 +124,10 @@ const Login: React.FC = () => {
 
   return (
     <div className={styles.container}>
+      <div className={styles.diagonalLine}></div>
+      <div className={styles.diagonalLine}></div>
+      <div className={styles.diagonalLine}></div>
+      <div className={styles.diagonalLine}></div>
       <div className={styles.formContainer}>
         <div className={styles.header}>
           <h1 className={styles.title}>
@@ -200,7 +206,7 @@ const Login: React.FC = () => {
           )}
 
           {isLogin && (
-            <div className={styles.forgotPassword}>
+            <div className={styles.resetPassword}>
               <button
                 type="button"
                 onClick={handlePasswordReset}

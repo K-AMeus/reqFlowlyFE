@@ -25,7 +25,7 @@ const Header: React.FC<HeaderProps> = ({ isLoggedIn, onLogout }) => {
     <header className={styles.header}>
       <div className={styles.container}>
         <Link to="/" className={styles.logoLink}>
-          <div className={styles.logo}>Flowreq</div>
+          <div className={styles.logo}>ReqFlowly</div>
         </Link>
         <div className={styles.actions}>
           {isLoggedIn ? (
