@@ -34,7 +34,7 @@ const UseCaseUploader: React.FC = () => {
 
     try {
       const response = await axios.post<UseCaseResponse>(
-        "https://spec2testbe-production.up.railway.app/api/usecase-service/v1/usecases/text",
+        "http://localhost:8080/api/usecase-service/v1/usecases/text",
         { description, customPrompt }
       );
       setDomainObjects(response.data.domainObjects || {});
@@ -63,7 +63,7 @@ const UseCaseUploader: React.FC = () => {
       }
 
       const response = await axios.post<UseCaseResponse>(
-        "https://spec2testbe-production.up.railway.app/api/usecase-service/v1/usecases/upload",
+        "http://localhost:8080/api/usecase-service/v1/usecases/upload",
         formData,
         {
           headers: {
@@ -89,7 +89,6 @@ const UseCaseUploader: React.FC = () => {
 
   const toggleDomainObject = (domain: string) => {
     if (domain in domainObjects) {
-      // Move from active to removed
       setRemovedDomainObjects((prev) => ({
         ...prev,
         [domain]: [...domainObjects[domain]],
@@ -124,7 +123,7 @@ const UseCaseUploader: React.FC = () => {
 
   return (
     <div className={styles.container}>
-      <h1 className={styles.title}>Automated Test Case Generation Tool</h1>
+      <h1 className={styles.title}>Flowreq Use Case & Test Case Generator</h1>
 
       <div className={styles.tabButtons}>
         <button

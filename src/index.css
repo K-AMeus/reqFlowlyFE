@@ -1,7 +1,31 @@
+html {
+  scroll-behavior: smooth;
+}
+
 body {
-    background-color: #000000;
-    margin: 0;
-    padding: 0;
-    font-family: 'Arial', sans-serif;
-    color: #ffffff;
+  background-color: #f6f9fc;
+  margin: 0;
+  padding: 0;
+  min-height: 100vh;
+  font-family: "Inter", "Segoe UI", "Roboto", sans-serif;
+  color: #0a1929;
+  overflow-x: hidden;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+#root {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+main {
+  flex: 1;
+}
+
+footer {
+  margin-top: auto;
 }
