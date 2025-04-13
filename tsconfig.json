@@ -6,12 +6,13 @@
   ],
   "compilerOptions": {
     "esModuleInterop": true,
-    "moduleResolution": "node",
+    "moduleResolution": "bundler",
     "allowSyntheticDefaultImports": true,
     "strict": true,
     "target": "es6",
     "composite": true,
-    "emitDeclarationOnly": false
+    "emitDeclarationOnly": false,
+    "jsx": "react-jsx"
   },
   "include": ["src/**/*", "components/**/*"]
 }
