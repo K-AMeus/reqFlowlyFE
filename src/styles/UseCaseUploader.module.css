@@ -776,7 +776,7 @@ tr.suggestedRow td {
 }
 
 .deleteIcon {
-  color: rgba(255, 255, 255, 0.5);
+  color: #e53935;
   cursor: pointer;
   padding: 5px;
   border-radius: 4px;
@@ -785,15 +785,17 @@ tr.suggestedRow td {
   align-items: center;
   justify-content: center;
   z-index: 2;
+  background-color: rgba(229, 57, 53, 0.08);
+  opacity: 1;
 }
 
 .deleteIcon:hover {
   color: #e53935;
-  background-color: rgba(229, 57, 53, 0.1);
+  background-color: rgba(229, 57, 53, 0.15);
 }
 
 .addIcon {
-  color: rgba(255, 255, 255, 0.5);
+  color: #4caf50;
   cursor: pointer;
   padding: 5px;
   border-radius: 4px;
@@ -802,6 +804,8 @@ tr.suggestedRow td {
   align-items: center;
   justify-content: center;
   z-index: 2;
+  background-color: rgba(76, 175, 80, 0.08);
+  opacity: 1;
 }
 
 .addIcon:hover {

@@ -1,7 +1,8 @@
 import React from "react";
-import { Link, useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import styles from "../styles/Header.module.css";
 import { useAuth } from "../context/AuthContext";
+import { navigateTo } from "../helpers";
 
 interface HeaderProps {
   isLoggedIn: boolean;
@@ -10,6 +11,7 @@ interface HeaderProps {
 
 const Header: React.FC<HeaderProps> = ({ isLoggedIn, onLogout }) => {
   const location = useLocation();
+  const navigate = useNavigate();
   const isLoginPage = location.pathname === "/login";
   const { currentUser } = useAuth();
 
@@ -24,28 +26,41 @@ const Header: React.FC<HeaderProps> = ({ isLoggedIn, onLogout }) => {
   return (
     <header className={styles.header}>
       <div className={styles.container}>
-        <Link to="/" className={styles.logoLink}>
-          <div className={styles.logo}>ReqFlowly</div>
-        </Link>
+        <div
+          className={styles.logo}
+          onClick={() => navigateTo(navigate, "/")}
+          style={{ cursor: "pointer" }}
+        >
+          ReqFlowly
+        </div>
         <div className={styles.actions}>
           {isLoggedIn ? (
             <>
               <div className={styles.userInfo}>{currentUser?.email}</div>
-              <Link to="/app" className={styles.navLink}>
-                Dashboard
-              </Link>
+              <button
+                onClick={() => navigateTo(navigate, "/projects")}
+                className={styles.navLink}
+              >
+                Projects
+              </button>
               <button onClick={handleLogout} className={styles.loginButton}>
                 Log Out
               </button>
             </>
           ) : isLoginPage ? (
-            <Link to="/" className={styles.loginButton}>
+            <button
+              onClick={() => navigateTo(navigate, "/")}
+              className={styles.loginButton}
+            >
               Home
-            </Link>
+            </button>
           ) : (
-            <Link to="/login" className={styles.loginButton}>
+            <button
+              onClick={() => navigateTo(navigate, "/login")}
+              className={styles.loginButton}
+            >
               Log In
-            </Link>
+            </button>
           )}
         </div>
       </div>

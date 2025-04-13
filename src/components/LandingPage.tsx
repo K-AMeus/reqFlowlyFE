@@ -1,8 +1,10 @@
 import React from "react";
-import { Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import styles from "../styles/LandingPage.module.css";
 
 const LandingPage: React.FC = () => {
+  const navigate = useNavigate();
+
   const scrollToSection = (elementId: string) => {
     const element = document.getElementById(elementId);
     if (element) {
@@ -11,6 +13,10 @@ const LandingPage: React.FC = () => {
         block: "start",
       });
     }
+  };
+
+  const navigateToLogin = () => {
+    navigate("/login");
   };
 
   return (
@@ -26,9 +32,9 @@ const LandingPage: React.FC = () => {
             improving overall quality.
           </p>
           <div className={styles.heroCta}>
-            <Link to="/login" className={styles.primaryButton}>
+            <button onClick={navigateToLogin} className={styles.primaryButton}>
               Get Started
-            </Link>
+            </button>
             <button
               onClick={() => scrollToSection("features")}
               className={styles.secondaryButton}
@@ -196,9 +202,9 @@ const LandingPage: React.FC = () => {
           and improving quality with automated use case and test case
           generation.
         </p>
-        <Link to="/login" className={styles.ctaButton}>
+        <button onClick={navigateToLogin} className={styles.ctaButton}>
           Get Started Now
-        </Link>
+        </button>
       </section>
     </div>
   );

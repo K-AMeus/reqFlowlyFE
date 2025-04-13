@@ -31,6 +31,9 @@
   padding-bottom: 3px;
   margin-left: 0.5rem;
   transition: all 0.3s ease;
+  display: inline-block;
+  padding: 0.2rem 0.5rem;
+  border-radius: 4px;
 }
 
 .logo::after {
@@ -63,6 +66,29 @@
   z-index: -1;
   filter: blur(8px);
   transform: translateY(5px) scale(0.8);
+}
+
+.logo:hover {
+  color: #ffffff;
+  text-shadow: 0 0 10px rgba(77, 137, 196, 0.5),
+    0 0 20px rgba(77, 137, 196, 0.3);
+  transform: translateY(-1px);
+}
+
+.logo:hover::after {
+  transform: scaleX(1.1);
+  background: linear-gradient(
+    to right,
+    transparent,
+    #4d89c4,
+    #6aa1d9,
+    transparent
+  );
+}
+
+.logo:hover::before {
+  opacity: 0.2;
+  transform: translateY(2px) scale(1);
 }
 
 .logoLink {
@@ -112,6 +138,11 @@
   font-weight: 500;
   transition: color 0.2s ease;
   position: relative;
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  font-family: inherit;
 }
 
 .navLink:after {

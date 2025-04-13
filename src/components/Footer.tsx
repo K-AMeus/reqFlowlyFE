@@ -31,8 +31,8 @@ const Footer: React.FC = () => {
                 </Link>
               </li>
               <li>
-                <Link to="/app" className={styles.footerLink}>
-                  Dashboard
+                <Link to="/projects" className={styles.footerLink}>
+                  Projects
                 </Link>
               </li>
             </ul>

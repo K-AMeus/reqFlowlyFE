@@ -5,12 +5,13 @@ import {
   Route,
   Navigate,
 } from "react-router-dom";
-import UseCaseUploader from "./components/UseCaseUploader";
 import Header from "./components/Header";
 import Footer from "./components/Footer";
 import Login from "./components/Login";
 import LandingPage from "./components/LandingPage";
+import Projects from "./components/Projects";
 import { AuthProvider, useAuth } from "./context/AuthContext";
+import ScrollToTop from "./hooks/ScrollToTop";
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
@@ -36,13 +37,23 @@ const AppRoutes = () => {
           <Route path="/" element={<LandingPage />} />
           <Route
             path="/login"
-            element={currentUser ? <Navigate to="/app" replace /> : <Login />}
+            element={
+              currentUser ? <Navigate to="/projects" replace /> : <Login />
+            }
           />
           <Route
-            path="/app"
+            path="/projects"
             element={
               <ProtectedRoute>
-                <UseCaseUploader />
+                <Projects />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/projects/:projectId"
+            element={
+              <ProtectedRoute>
+                <Projects />
               </ProtectedRoute>
             }
           />
@@ -58,7 +69,9 @@ const App = () => {
   return (
     <AuthProvider>
       <Router>
-        <AppRoutes />
+        <ScrollToTop>
+          <AppRoutes />
+        </ScrollToTop>
       </Router>
     </AuthProvider>
   );

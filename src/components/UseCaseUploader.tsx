@@ -1,42 +1,16 @@
 import React, { useState, ChangeEvent, useEffect } from "react";
-import axios from "axios";
 import styles from "../styles/UseCaseUploader.module.css";
+import { useAuth } from "../context/AuthContext";
+import {
+  createAuthenticatedRequest,
+  UploaderDeleteIcon,
+  AddIcon,
+} from "../helpers";
 
 interface UseCaseResponse {
   domainObjects: { [key: string]: string[] };
   suggestedDomainObjects: { [key: string]: string[] };
 }
-
-const DeleteIcon = ({ onClick }: { onClick: () => void }) => (
-  <div className={styles.deleteIcon} onClick={onClick}>
-    <svg
-      width="16"
-      height="16"
-      viewBox="0 0 24 24"
-      fill="none"
-      xmlns="http://www.w3.org/2000/svg"
-    >
-      <path
-        d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"
-        fill="currentColor"
-      />
-    </svg>
-  </div>
-);
-
-const AddIcon = ({ onClick }: { onClick: () => void }) => (
-  <div className={styles.addIcon} onClick={onClick}>
-    <svg
-      width="16"
-      height="16"
-      viewBox="0 0 24 24"
-      fill="none"
-      xmlns="http://www.w3.org/2000/svg"
-    >
-      <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z" fill="currentColor" />
-    </svg>
-  </div>
-);
 
 const UseCaseUploader: React.FC = () => {
   const [description, setDescription] = useState("");
@@ -57,6 +31,8 @@ const UseCaseUploader: React.FC = () => {
   const [selectedTab, setSelectedTab] = useState<"text" | "file">("text");
   const [activeView, setActiveView] = useState<"input" | "results">("input");
   const [resultsReady, setResultsReady] = useState(false);
+
+  const { currentUser } = useAuth();
 
   useEffect(() => {
     if (
@@ -80,8 +56,9 @@ const UseCaseUploader: React.FC = () => {
     setResultsReady(false);
 
     try {
-      const response = await axios.post<UseCaseResponse>(
-        "https://spec2testbe-production.up.railway.app/api/usecase-service/v1/usecases/text",
+      const api = await createAuthenticatedRequest(currentUser);
+      const response = await api.post<UseCaseResponse>(
+        "/usecase-service/v1/usecases/text",
         { description, customPrompt }
       );
       setDomainObjects(response.data.domainObjects || {});
@@ -112,8 +89,9 @@ const UseCaseUploader: React.FC = () => {
         formData.append("customPrompt", customPrompt);
       }
 
-      const response = await axios.post<UseCaseResponse>(
-        "https://spec2testbe-production.up.railway.app/api/usecase-service/v1/usecases/upload",
+      const api = await createAuthenticatedRequest(currentUser);
+      const response = await api.post<UseCaseResponse>(
+        "/usecase-service/v1/usecases/upload",
         formData,
         {
           headers: {
@@ -326,7 +304,7 @@ const UseCaseUploader: React.FC = () => {
                               transform: "translateY(-50%)",
                             }}
                           >
-                            <DeleteIcon
+                            <UploaderDeleteIcon
                               onClick={() => toggleDomainObject(domain)}
                             />
                           </span>
