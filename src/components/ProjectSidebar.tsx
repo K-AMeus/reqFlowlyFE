@@ -88,7 +88,7 @@ const ProjectSidebar: React.FC<ProjectSidebarProps> = ({
             !isOpen ? styles.toggleIconClosed : ""
           }`}
         >
-          ◀
+          &#10094;
         </span>
       </button>
     </>

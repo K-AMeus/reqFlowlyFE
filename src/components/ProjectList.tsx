@@ -290,7 +290,7 @@ const ProjectList: React.FC = () => {
     <div className={styles.container}>
       <div className={styles.header}>
         <h1>{showCreateForm ? "Project Creation" : "My Projects"}</h1>
-        {!showCreateForm && (
+        {!showCreateForm && projects.length > 0 && (
           <button
             className={styles.createButton}
             onClick={() => setShowCreateForm(true)}
@@ -309,56 +309,61 @@ const ProjectList: React.FC = () => {
       </div>
 
       {showCreateForm ? (
-        <div className={styles.createForm}>
+        <>
           <div className={styles.diagonalLine}></div>
           <div className={styles.diagonalLine}></div>
           <div className={styles.diagonalLine}></div>
           <div className={styles.diagonalLine}></div>
-
-          <h2>Create New Project</h2>
-          <form onSubmit={handleCreateProject}>
-            <div className={styles.formGroup}>
-              <label htmlFor="name">Project Name</label>
-              <input
-                type="text"
-                id="name"
-                value={newProject.name}
-                onChange={(e) =>
-                  setNewProject({ ...newProject, name: e.target.value })
-                }
-                placeholder="Enter project name"
-                required
-              />
-            </div>
-            <div className={styles.formGroup}>
-              <label htmlFor="description">Description (Optional)</label>
-              <textarea
-                id="description"
-                value={newProject.description}
-                onChange={(e) =>
-                  setNewProject({ ...newProject, description: e.target.value })
-                }
-                placeholder="Enter project description"
-              />
-            </div>
-            <div className={styles.formActions}>
-              <button
-                type="button"
-                className={styles.cancelButton}
-                onClick={() => setShowCreateForm(false)}
-              >
-                Cancel
-              </button>
-              <button
-                type="submit"
-                className={styles.submitButton}
-                disabled={loading}
-              >
-                {loading ? "Creating..." : "Create Project"}
-              </button>
-            </div>
-          </form>
-        </div>
+          <div className={styles.diagonalLine}></div>
+          <div className={styles.createForm}>
+            <h2>Create New Project</h2>
+            <form onSubmit={handleCreateProject}>
+              <div className={styles.formGroup}>
+                <label htmlFor="name">Project Name</label>
+                <input
+                  type="text"
+                  id="name"
+                  value={newProject.name}
+                  onChange={(e) =>
+                    setNewProject({ ...newProject, name: e.target.value })
+                  }
+                  placeholder="Enter project name"
+                  required
+                />
+              </div>
+              <div className={styles.formGroup}>
+                <label htmlFor="description">Description (Optional)</label>
+                <textarea
+                  id="description"
+                  value={newProject.description}
+                  onChange={(e) =>
+                    setNewProject({
+                      ...newProject,
+                      description: e.target.value,
+                    })
+                  }
+                  placeholder="Enter project description"
+                />
+              </div>
+              <div className={styles.formActions}>
+                <button
+                  type="button"
+                  className={styles.cancelButton}
+                  onClick={() => setShowCreateForm(false)}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className={styles.submitButton}
+                  disabled={loading}
+                >
+                  {loading ? "Creating..." : "Create Project"}
+                </button>
+              </div>
+            </form>
+          </div>
+        </>
       ) : (
         <>
           {error && <div className={styles.error}>{error}</div>}
@@ -373,6 +378,12 @@ const ProjectList: React.FC = () => {
               <p>
                 No projects found. Create your first project to get started.
               </p>
+              <button
+                className={styles.createButton}
+                onClick={() => setShowCreateForm(true)}
+              >
+                Create New Project
+              </button>
             </div>
           ) : (
             <>

@@ -79,7 +79,6 @@ const UseCaseUploader: React.FC = () => {
             projectId,
             requirementData
           );
-
         } catch (err) {
           console.error("Error saving requirement:", err);
         } finally {
