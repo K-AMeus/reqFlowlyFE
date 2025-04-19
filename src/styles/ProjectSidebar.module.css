@@ -1,0 +1,191 @@
+.sidebarContainer {
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 100%;
+  min-height: 100vh;
+  width: 280px;
+  background-color: #0a1929;
+  box-shadow: 4px 0 15px rgba(0, 0, 0, 0.1);
+  z-index: 100;
+  color: #ffffff;
+  display: flex;
+  flex-direction: column;
+  transform: translateX(0);
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  overflow-y: auto;
+  will-change: transform;
+  bottom: 0;
+}
+
+.sidebarContainerClosed {
+  transform: translateX(-280px);
+}
+
+.sidebarHeader {
+  padding: 1.5rem;
+  background-color: rgba(30, 73, 118, 0.4);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.sidebarHeader h3 {
+  margin: 0;
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: white;
+}
+
+.sidebarContent {
+  padding: 1.5rem 0;
+  flex: 1;
+}
+
+.sidebarNav {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.navItem {
+  margin: 0;
+  padding: 0;
+}
+
+.navLink {
+  display: flex;
+  align-items: center;
+  padding: 0.9rem 1.5rem;
+  color: rgba(255, 255, 255, 0.7);
+  text-decoration: none;
+  font-weight: 500;
+  font-size: 0.95rem;
+  transition: all 0.2s ease;
+  border-left: 3px solid transparent;
+  position: relative;
+}
+
+.navLink:hover {
+  background-color: rgba(255, 255, 255, 0.05);
+  color: white;
+}
+
+.navLinkActive {
+  background-color: rgba(30, 73, 118, 0.3);
+  color: white;
+  border-left: 3px solid #4d89c4;
+}
+
+.navLinkActive::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+  background: linear-gradient(to bottom, #1e4976, #4d89c4);
+}
+
+.navIcon {
+  margin-right: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.2rem;
+  width: 20px;
+  height: 20px;
+}
+
+.toggleButton {
+  position: fixed;
+  left: 280px;
+  top: 20px;
+  width: 36px;
+  height: 36px;
+  background-color: #1e4976;
+  color: white;
+  border: none;
+  border-radius: 0 4px 4px 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 101;
+  box-shadow: 2px 0 8px rgba(0, 0, 0, 0.2);
+  transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  font-size: 16px;
+  will-change: left;
+  transform-origin: center center;
+}
+
+.toggleButton:hover {
+  background-color: #2c5d8f;
+  box-shadow: 3px 0 10px rgba(0, 0, 0, 0.3);
+}
+
+.toggleButtonClosed {
+  left: 0;
+  box-shadow: 3px 0 10px rgba(0, 0, 0, 0.3);
+}
+
+.toggleIcon {
+  transition: transform 0.3s ease;
+}
+
+.toggleIconClosed {
+  transform: rotate(180deg);
+}
+
+.mainContent {
+  position: relative;
+  left: 280px;
+  width: calc(100% - 280px);
+  transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1), width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  min-height: 100vh;
+  height: auto;
+  padding: 2rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  will-change: left, width;
+}
+
+.mainContentFull {
+  left: 0;
+  width: 100%;
+}
+
+.closeButton {
+  background: transparent;
+  border: none;
+  color: white;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 5px;
+  border-radius: 4px;
+  transition: background-color 0.2s;
+}
+
+.closeButton:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+@media (max-width: 768px) {
+  .sidebarContainer {
+    width: 240px;
+  }
+
+  .toggleButton {
+    left: 240px;
+  }
+
+  .mainContent {
+    left: 240px;
+    width: calc(100% - 240px);
+  }
+}

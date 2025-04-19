@@ -2,7 +2,7 @@ import React from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import styles from "../styles/Header.module.css";
 import { useAuth } from "../context/AuthContext";
-import { navigateTo } from "../helpers";
+import { navigateTo } from "../helpers/navigationUtils";
 
 interface HeaderProps {
   isLoggedIn: boolean;

@@ -38,7 +38,22 @@ export const EditIcon = ({
 }: {
   onClick: (e: React.MouseEvent) => void;
 }) => (
-  <div className={styles.editIcon} onClick={onClick} title="Edit project">
+  <div
+    className={styles.editIcon}
+    onClick={onClick}
+    title="Edit project"
+    style={{
+      backgroundColor: "#1e4976",
+      color: "white",
+      borderRadius: "6px",
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      padding: "10px",
+      border: "1px solid rgba(30, 73, 118, 0.5)",
+      cursor: "pointer",
+    }}
+  >
     <svg
       width="18"
       height="18"

@@ -1,28 +1,21 @@
 import React, { useState, useEffect, useRef } from "react";
 import styles from "../styles/Projects.module.css";
-import UseCaseUploader from "./UseCaseUploader";
 import { useAuth } from "../context/AuthContext";
-import { useParams, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import {
   RequirementsLogo,
-  DeleteIcon,
-  EditIcon,
   BackIcon,
   ChevronLeft,
   ChevronRight,
-  CalendarIcon,
-  TimeIcon,
-  CardCalendarIcon,
-  CardTimeIcon,
-  formatTimeAgo,
-  formatDate,
-  formatShortDate,
+} from "../helpers/icons";
+import { CardCalendarIcon, CardTimeIcon } from "../helpers/icons";
+import { formatTimeAgo, formatShortDate } from "../helpers/dateUtils";
+import {
   createRefCallback,
   processTruncatedElements,
-  navigateToProject,
-  navigateTo,
-  createAuthenticatedRequest,
-} from "../helpers";
+} from "../helpers/domUtils";
+import { navigateToProject } from "../helpers/navigationUtils";
+import { createAuthenticatedRequest } from "../helpers/apiUtils";
 
 interface Project {
   id: string;
@@ -40,32 +33,14 @@ interface PageResponse {
   number: number;
 }
 
-const Projects: React.FC = () => {
+const ProjectList: React.FC = () => {
   const [projects, setProjects] = useState<Project[]>([]);
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [newProject, setNewProject] = useState({ name: "", description: "" });
-  const [selectedProject, setSelectedProject] = useState<Project | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-
-  const [showEditModal, setShowEditModal] = useState(false);
-  const [projectToEdit, setProjectToEdit] = useState<Project | null>(null);
-  const [editFormData, setEditFormData] = useState({
-    name: "",
-    description: "",
-  });
-
-  const { currentUser } = useAuth();
-  const descriptionRefs = useRef<{
-    [key: string]: HTMLParagraphElement | null;
-  }>({});
-
-  const { projectId } = useParams<{ projectId?: string }>();
-  const navigate = useNavigate();
-
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [projectToDelete, setProjectToDelete] = useState<Project | null>(null);
-
   const [currentPage, setCurrentPage] = useState(0);
   const [totalPages, setTotalPages] = useState(0);
   const [, setTotalProjects] = useState(0);
@@ -76,22 +51,18 @@ const Projects: React.FC = () => {
   const [sortField, setSortField] = useState<SortField>("updatedAt");
   const [sortDirection, setSortDirection] = useState<SortDirection>("desc");
 
-  // Use our helper to create a ref callback
+  const { currentUser } = useAuth();
+  const descriptionRefs = useRef<{
+    [key: string]: HTMLParagraphElement | null;
+  }>({});
+  const navigate = useNavigate();
+
   const setDescriptionRef =
     createRefCallback<HTMLParagraphElement>(descriptionRefs);
 
   useEffect(() => {
     fetchProjects(currentPage);
   }, [currentPage]);
-
-  useEffect(() => {
-    if (projectId) {
-      fetchProjectById(projectId);
-    } else {
-      setSelectedProject(null);
-      fetchProjects(currentPage);
-    }
-  }, [projectId, currentPage]);
 
   useEffect(() => {
     const checkTruncation = () => {
@@ -103,25 +74,6 @@ const Projects: React.FC = () => {
 
     return () => clearTimeout(timer);
   }, [projects]);
-
-  const fetchProjectById = async (id: string) => {
-    try {
-      setLoading(true);
-      const api = await createAuthenticatedRequest(currentUser);
-      const response = await api.get<Project>(
-        `/project-service/v1/projects/${id}`
-      );
-
-      setSelectedProject(response.data);
-      fetchProjects(currentPage);
-    } catch (err) {
-      console.error("Error fetching project:", err);
-      setError("Failed to fetch project details");
-      navigateTo(navigate, "/projects");
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const fetchProjects = async (page: number) => {
     setLoading(true);
@@ -169,7 +121,7 @@ const Projects: React.FC = () => {
       await api.post(`/project-service/v1/projects`, newProject);
       setShowCreateForm(false);
       setNewProject({ name: "", description: "" });
-      fetchProjects(0); // Reset to first page after creating a new project
+      fetchProjects(0);
     } catch (err) {
       setError("Failed to create project");
       console.error(err);
@@ -203,16 +155,9 @@ const Projects: React.FC = () => {
       setShowDeleteConfirm(false);
       setProjectToDelete(null);
 
-      if (projectId && projectId === projectToDelete.id) {
-        navigateTo(navigate, "/projects");
-        setTimeout(() => fetchProjects(currentPage), 100);
-      } else {
-        await fetchProjects(
-          projects.length === 1 && currentPage > 0
-            ? currentPage - 1
-            : currentPage
-        );
-      }
+      await fetchProjects(
+        projects.length === 1 && currentPage > 0 ? currentPage - 1 : currentPage
+      );
     } catch (err) {
       console.error("Failed to delete project:", err);
       setError("Failed to delete project");
@@ -244,7 +189,6 @@ const Projects: React.FC = () => {
       ? Math.min(startPage + 3, totalPages - 1)
       : totalPages - 1;
 
-    // Generate visible page numbers
     for (let i = startPage; i <= endPage; i++) {
       pageNumbers.push(
         <button
@@ -341,236 +285,6 @@ const Projects: React.FC = () => {
       setSortDirection(field === "name" ? "asc" : "desc");
     }
   };
-
-  const handleEditClick = (e: React.MouseEvent, project: Project) => {
-    e.stopPropagation();
-    setProjectToEdit(project);
-    setEditFormData({
-      name: project.name,
-      description: project.description || "",
-    });
-    setShowEditModal(true);
-  };
-
-  const handleSaveEdit = async (e: React.FormEvent) => {
-    e.preventDefault();
-
-    if (!projectToEdit || !projectToEdit.id) {
-      console.error("Cannot edit: project ID is missing");
-      setError("Failed to edit project: Missing project ID");
-      setShowEditModal(false);
-      return;
-    }
-
-    try {
-      setLoading(true);
-      const api = await createAuthenticatedRequest(currentUser);
-      await api.put(
-        `/project-service/v1/projects/${projectToEdit.id}`,
-        editFormData
-      );
-
-      setShowEditModal(false);
-      setProjectToEdit(null);
-
-      if (projectId && projectId === projectToEdit.id && selectedProject) {
-        fetchProjectById(projectId);
-      } else {
-        fetchProjects(currentPage);
-      }
-    } catch (err) {
-      console.error("Failed to edit project:", err);
-      setError("Failed to edit project");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const cancelEdit = () => {
-    setShowEditModal(false);
-    setProjectToEdit(null);
-    setEditFormData({ name: "", description: "" });
-  };
-
-  const handleBackToProjects = () => {
-    navigateTo(navigate, "/projects");
-  };
-
-  if (projectId && selectedProject) {
-    return (
-      <div className={styles.projectDetail}>
-        <div className={styles.projectHeader}>
-          <div className={styles.projectTitleContainer}>
-            <h1>{selectedProject.name}</h1>
-            <div className={styles.projectActions}>
-              <EditIcon
-                onClick={(e) => {
-                  e.stopPropagation();
-                  if (selectedProject && selectedProject.id) {
-                    handleEditClick(e, selectedProject);
-                  } else {
-                    console.error("Invalid project or missing ID");
-                    setError("Cannot edit: missing project information");
-                  }
-                }}
-              />
-              <DeleteIcon
-                onClick={(e) => {
-                  e.stopPropagation();
-                  if (selectedProject && selectedProject.id) {
-                    const projectCopy = {
-                      id: selectedProject.id,
-                      name: selectedProject.name,
-                      description: selectedProject.description,
-                      createdAt: selectedProject.createdAt,
-                      updatedAt: selectedProject.updatedAt,
-                    };
-                    setProjectToDelete(projectCopy);
-                    setShowDeleteConfirm(true);
-                  } else {
-                    console.error("Invalid project or missing ID");
-                    setError("Cannot delete: missing project information");
-                  }
-                }}
-              />
-            </div>
-          </div>
-          <p>{selectedProject.description}</p>
-          <div className={styles.projectDetailInfo}>
-            <div className={styles.projectDetailDates}>
-              <div className={styles.projectDetailDateItem}>
-                <CalendarIcon />
-                <div>
-                  <span className={styles.detailDateLabel}>Created</span>
-                  <span className={styles.detailDateValue}>
-                    {formatDate(selectedProject.createdAt)}
-                  </span>
-                </div>
-              </div>
-              <div className={styles.projectDetailDateItem}>
-                <div>
-                  <span className={styles.detailDateLabel}>Last modified</span>
-                  <span className={styles.detailDateValue}>
-                    {selectedProject.updatedAt
-                      ? formatTimeAgo(selectedProject.updatedAt)
-                      : "N/A"}
-                  </span>
-                </div>
-                <TimeIcon />
-              </div>
-            </div>
-          </div>
-          <button className={styles.backButton} onClick={handleBackToProjects}>
-            <BackIcon /> Back to Projects
-          </button>
-        </div>
-
-        {loading ? (
-          <div className={styles.loadingContainer}>
-            <div className={styles.spinner}></div>
-            <p>Loading project...</p>
-          </div>
-        ) : (
-          <UseCaseUploader />
-        )}
-
-        {showEditModal && projectToEdit && (
-          <div className={styles.modalOverlay}>
-            <div className={styles.formDialog}>
-              <h3>Edit Project</h3>
-              <form onSubmit={handleSaveEdit}>
-                <div className={styles.formGroup}>
-                  <label htmlFor="editName">Project Name</label>
-                  <input
-                    type="text"
-                    id="editName"
-                    value={editFormData.name}
-                    onChange={(e) =>
-                      setEditFormData({ ...editFormData, name: e.target.value })
-                    }
-                    placeholder="Enter project name"
-                    required
-                  />
-                </div>
-                <div className={styles.formGroup}>
-                  <label htmlFor="editDescription">
-                    Description (Optional)
-                  </label>
-                  <textarea
-                    id="editDescription"
-                    value={editFormData.description}
-                    onChange={(e) =>
-                      setEditFormData({
-                        ...editFormData,
-                        description: e.target.value,
-                      })
-                    }
-                    placeholder="Enter project description"
-                  />
-                </div>
-                <div className={styles.formActions}>
-                  <button
-                    type="button"
-                    className={styles.cancelButton}
-                    onClick={cancelEdit}
-                    disabled={loading}
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    type="submit"
-                    className={styles.submitButton}
-                    disabled={loading}
-                  >
-                    {loading ? "Saving..." : "Save Changes"}
-                  </button>
-                </div>
-              </form>
-            </div>
-          </div>
-        )}
-
-        {showDeleteConfirm && projectToDelete && (
-          <div className={styles.modalOverlay}>
-            <div className={styles.confirmDialog}>
-              <h3>Delete Project?</h3>
-              <p>
-                Are you sure you wish to delete the project "
-                {projectToDelete.name}"? This action cannot be undone.
-              </p>
-              <div className={styles.formActions}>
-                <button
-                  type="button"
-                  className={styles.cancelButton}
-                  onClick={cancelDelete}
-                  disabled={loading}
-                >
-                  No, Cancel
-                </button>
-                <button
-                  type="button"
-                  className={styles.deleteButton}
-                  onClick={handleConfirmDelete}
-                  disabled={loading}
-                >
-                  {loading ? "Deleting..." : "Yes, Delete"}
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
-      </div>
-    );
-  }
-
-  if (projectId && !selectedProject) {
-    return (
-      <div className={styles.loadingContainer}>
-        <div className={styles.spinner}></div>
-        <p>Loading project...</p>
-      </div>
-    );
-  }
 
   return (
     <div className={styles.container}>
@@ -791,4 +505,4 @@ const Projects: React.FC = () => {
   );
 };
 
-export default Projects;
+export default ProjectList;

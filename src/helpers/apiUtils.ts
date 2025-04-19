@@ -1,5 +1,8 @@
 import { User } from "firebase/auth";
 import axios from "axios";
+import { RequirementService } from "../services/RequirementService";
+import { ProjectService } from "../services/ProjectService";
+import { ExtendedAxiosInstance } from "../types/api";
 
 export const getAuthHeader = async (currentUser: User | null) => {
   if (!currentUser) return {};
@@ -15,12 +18,22 @@ export const apiConfig = {
   withCredentials: true,
 };
 
-export const createAuthenticatedRequest = async (currentUser: User | null) => {
+export const createAuthenticatedRequest = async (
+  currentUser: User | null
+): Promise<ExtendedAxiosInstance> => {
   const headers = await getAuthHeader(currentUser);
 
-  return axios.create({
+  const api = axios.create({
     baseURL: apiConfig.baseURL,
     headers,
     withCredentials: apiConfig.withCredentials,
-  });
+  }) as ExtendedAxiosInstance;
+
+  const projectService = new ProjectService(api);
+  const requirementService = new RequirementService(api);
+
+  api.projectService = projectService;
+  api.requirementService = requirementService;
+
+  return api;
 };
