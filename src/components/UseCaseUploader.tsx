@@ -120,7 +120,27 @@ const UseCaseUploader: React.FC = () => {
 
       const api = await createAuthenticatedRequest(currentUser);
 
-      // TODO: Implement file upload as requirements when needed
+      if (projectId) {
+        try {
+          setSavingRequirement(true);
+
+          const requirementData: RequirementCreateRequestDto = {
+            title: `Requirement from ${new Date().toLocaleString()}`,
+            description: "Domain objects extracted from PDF upload",
+            sourceType: "PDF",
+            sourceContent: file.name,
+          };
+
+          await api.requirementService.createRequirement(
+            projectId,
+            requirementData
+          );
+        } catch (err) {
+          console.error("Error saving requirement:", err);
+        } finally {
+          setSavingRequirement(false);
+        }
+      }
 
       const response = await api.post<UseCaseResponse>(
         "/usecase-service/v1/usecases/upload",
@@ -296,13 +316,18 @@ const UseCaseUploader: React.FC = () => {
                 />
                 <button
                   type="submit"
-                  disabled={loading || !file}
+                  disabled={loading || !file || savingRequirement}
                   className={styles.submitButton}
                 >
                   {loading ? (
                     <>
                       <span className={styles.loading}></span>
                       Processing...
+                    </>
+                  ) : savingRequirement ? (
+                    <>
+                      <span className={styles.loading}></span>
+                      Saving Requirement...
                     </>
                   ) : (
                     "Upload PDF"

@@ -176,19 +176,30 @@
 }
 
 .backButton {
-  background-color: transparent;
-  border: none;
+  background-color: #f0f2f5;
+  border: 1px solid rgba(30, 73, 118, 0.15);
+  border-radius: 4px;
   color: #1e4976;
   font-size: 0.9rem;
-  padding: 0;
+  padding: 0.5rem 1rem;
   cursor: pointer;
   margin-bottom: 1.5rem;
   display: flex;
   align-items: center;
+  transition: all 0.2s ease;
+  font-weight: 500;
 }
 
 .backButton:hover {
-  text-decoration: underline;
+  background-color: rgba(30, 73, 118, 0.1);
+  text-decoration: none;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.backButton:active {
+  transform: translateY(0);
+  box-shadow: none;
 }
 
 .requirementHeader {
