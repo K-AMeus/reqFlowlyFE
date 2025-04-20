@@ -268,8 +268,6 @@ const Project: React.FC = () => {
             <div className={styles.requirementsSection}>
               <RequirementsList projectId={selectedProject.id} />
             </div>
-
-            {renderPageNavigation()}
           </div>
         );
       case "domain-objects":
@@ -288,8 +286,6 @@ const Project: React.FC = () => {
             <div className={styles.domainObjectWrapper}>
               <UseCaseUploader />
             </div>
-
-            {renderPageNavigation()}
           </div>
         );
       case "use-cases":
@@ -310,8 +306,6 @@ const Project: React.FC = () => {
               <h3>Coming Soon</h3>
               <p>Use case generation is under development.</p>
             </div>
-
-            {renderPageNavigation()}
           </div>
         );
       case "test-cases":
@@ -332,8 +326,6 @@ const Project: React.FC = () => {
               <h3>Coming Soon</h3>
               <p>Test case generation is under development.</p>
             </div>
-
-            {renderPageNavigation()}
           </div>
         );
       default:
@@ -368,7 +360,10 @@ const Project: React.FC = () => {
       >
         <div className={styles.projectDetail}>
           {error && <div className={styles.error}>{error}</div>}
-          {renderPageContent()}
+          <div className={styles.pageContentWrapper}>{renderPageContent()}</div>
+          <div className={styles.paginationWrapper}>
+            {renderPageNavigation()}
+          </div>
         </div>
       </div>
 
