@@ -298,16 +298,20 @@
 
 .projectList {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
   gap: 1.5rem;
   margin-bottom: 2rem;
+  max-width: 1200px;
+  width: 100%;
+  margin-left: auto;
+  margin-right: auto;
 }
 
 .projectCard {
-  background-color: rgb(250, 250, 250);
-  padding: 1.5rem;
-  border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  background-color: white;
+  padding: 1.75rem;
+  border-radius: 10px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
   cursor: pointer;
   transition: transform 0.3s, box-shadow 0.3s;
   position: relative;
@@ -727,7 +731,8 @@
 .emptyState {
   text-align: center;
   padding: 4rem 2rem;
-  background-color: rgb(250, 250, 250);
+  margin-bottom: 8rem;
+  background-color: rgb(255, 255, 255);
   border-radius: 8px;
   border: 1px solid rgba(30, 73, 118, 0.1);
   color: #546e7a;
@@ -877,13 +882,13 @@
   margin-top: 12px;
   display: flex;
   align-items: center;
-  border-top: 1px solid rgba(0, 0, 0, 0.05);
+  border-top: 1px solid rgba(30, 73, 118, 0.15);
   position: absolute;
   bottom: 0;
   left: 0;
   right: 0;
   padding: 10px 1.5rem;
-  background-color: rgba(250, 246, 242, 0.98);
+  background-color: rgb(250, 250, 250);
 }
 
 .projectDates {
@@ -997,11 +1002,14 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 1.5rem;
-  background-color: rgb(250, 250, 250);
-  padding: 12px 16px;
+  margin-bottom: 2rem;
+  background-color: white;
+  padding: 1rem 1.5rem;
   border-radius: 6px;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  max-width: 1200px;
+  margin-left: auto;
+  margin-right: auto;
 }
 
 .sortOptions {
@@ -1181,9 +1189,12 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  width: 100%;
   margin-bottom: 1.5rem;
-  padding-bottom: 0.75rem;
+  padding-bottom: 0.5rem;
+  max-width: 1200px;
+  margin-left: auto;
+  margin-right: auto;
+  width: 100%;
 }
 
 .pageTitle {
@@ -1251,14 +1262,13 @@
 }
 
 .metadataCard {
-  background-color: rgb(245, 245, 245);
-  border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
-  padding: 1.5rem;
+  background-color: white;
+  padding: 2rem;
+  border-radius: 10px;
   border: 1px solid rgba(30, 73, 118, 0.15);
+  margin-bottom: 0;
+  transition: all 0.3s ease;
   width: 100%;
-  max-width: 1000px;
-  margin: 0 auto;
 }
 
 .metadataHeader {
@@ -1555,7 +1565,7 @@
 }
 
 .projectDetail {
-  max-width: 1000px;
+  max-width: 1200px;
   width: 100%;
   display: flex;
   flex-direction: column;
@@ -1568,4 +1578,67 @@
   position: relative;
   overflow: visible;
   z-index: 1;
+}
+
+.unifiedContentContainer {
+  max-width: 1200px;
+  margin: 0 auto 2rem;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.08);
+  border-radius: 10px;
+  overflow: hidden;
+  transition: all 0.3s ease;
+  width: 100%;
+}
+
+.requirementsWrapper {
+  margin-top: 2rem;
+  border-top: 1px solid rgba(30, 73, 118, 0.15);
+  padding-top: 1.5rem;
+}
+
+.requirementsWrapper :global(.requirementsContainer) {
+  background-color: transparent;
+  box-shadow: none;
+  border: none;
+  padding: 0;
+  margin: 0;
+}
+
+.requirementsWrapper :global(.requirementsTitle) {
+  font-size: 1.25rem;
+  color: #1e4976;
+  border-bottom: none;
+  margin-bottom: 1.25rem;
+  padding-bottom: 0;
+  display: flex;
+  align-items: center;
+}
+
+.requirementsWrapper :global(.requirementsTitle)::after {
+  content: "";
+  display: block;
+  height: 1px;
+  background: rgba(30, 73, 118, 0.15);
+  flex: 1;
+  margin-left: 1rem;
+}
+
+.requirementsWrapper :global(.requirementsList) {
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1.25rem;
+}
+
+.requirementsWrapper :global(.requirementCard) {
+  border: 1px solid rgba(30, 73, 118, 0.1);
+  transition: all 0.2s ease;
+}
+
+.requirementsWrapper :global(.requirementCard:hover) {
+  transform: translateY(-3px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  border-color: rgba(30, 73, 118, 0.3);
+}
+
+.requirementsSection {
+  display: none;
 }

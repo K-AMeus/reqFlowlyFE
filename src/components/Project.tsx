@@ -226,47 +226,48 @@ const Project: React.FC = () => {
               </button>
             </div>
 
-            <div className={styles.metadataCard}>
-              <div className={styles.metadataHeader}>
-                <h1>{selectedProject.name}</h1>
-                <div className={styles.projectActions}>
-                  <EditIcon onClick={handleEditClick} />
-                  <DeleteIcon onClick={handleDeleteClick} />
-                </div>
-              </div>
-              <div className={styles.metadataSection}>
-                <h3>Description</h3>
-                <p>
-                  {selectedProject.description || "No description provided."}
-                </p>
-              </div>
-              <div className={styles.metadataSection}>
-                <h3>Details</h3>
-                <div className={styles.metadataGrid}>
-                  <div className={styles.metadataItem}>
-                    <span className={styles.metadataLabel}>Created</span>
-                    <span className={styles.metadataValue}>
-                      {formatDate(selectedProject.createdAt)}
-                    </span>
-                  </div>
-                  <div
-                    className={styles.metadataItem}
-                    style={{ marginLeft: "auto" }}
-                  >
-                    <span className={styles.metadataLabel}>Last Updated</span>
-                    <span className={styles.metadataValue}>
-                      {selectedProject.updatedAt
-                        ? formatTimeAgo(selectedProject.updatedAt)
-                        : "N/A"}
-                    </span>
+            <div className={styles.unifiedContentContainer}>
+              <div className={styles.metadataCard}>
+                <div className={styles.metadataHeader}>
+                  <h1>{selectedProject.name}</h1>
+                  <div className={styles.projectActions}>
+                    <EditIcon onClick={handleEditClick} />
+                    <DeleteIcon onClick={handleDeleteClick} />
                   </div>
                 </div>
-              </div>
-            </div>
+                <div className={styles.metadataSection}>
+                  <h3>Description</h3>
+                  <p>
+                    {selectedProject.description || "No description provided."}
+                  </p>
+                </div>
+                <div className={styles.metadataSection}>
+                  <h3>Details</h3>
+                  <div className={styles.metadataGrid}>
+                    <div className={styles.metadataItem}>
+                      <span className={styles.metadataLabel}>Created</span>
+                      <span className={styles.metadataValue}>
+                        {formatDate(selectedProject.createdAt)}
+                      </span>
+                    </div>
+                    <div
+                      className={styles.metadataItem}
+                      style={{ marginLeft: "auto" }}
+                    >
+                      <span className={styles.metadataLabel}>Last Updated</span>
+                      <span className={styles.metadataValue}>
+                        {selectedProject.updatedAt
+                          ? formatTimeAgo(selectedProject.updatedAt)
+                          : "N/A"}
+                      </span>
+                    </div>
+                  </div>
+                </div>
 
-            {/* Requirements section */}
-            <div className={styles.requirementsSection}>
-              <RequirementsList projectId={selectedProject.id} />
+                <div className={styles.requirementsWrapper}>
+                  <RequirementsList projectId={selectedProject.id} />
+                </div>
+              </div>
             </div>
           </div>
         );
