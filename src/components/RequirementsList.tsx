@@ -12,6 +12,9 @@ import {
   TextIcon,
   RequirementEditIcon,
   RequirementDeleteIcon,
+  RequirementContentEditIcon,
+  SaveIcon,
+  CancelIcon,
 } from "../helpers/icons";
 
 interface RequirementsListProps {
@@ -37,6 +40,8 @@ const RequirementsList: React.FC<RequirementsListProps> = ({ projectId }) => {
     title: "",
     description: "",
   });
+  const [editingContent, setEditingContent] = useState(false);
+  const [contentEditData, setContentEditData] = useState("");
 
   const { currentUser } = useAuth();
 
@@ -226,6 +231,89 @@ const RequirementsList: React.FC<RequirementsListProps> = ({ projectId }) => {
     setEditFormData({ title: "", description: "" });
   };
 
+  const handleContentEditClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (!selectedRequirement) return;
+
+    setContentEditData(selectedRequirement.sourceContent || "");
+    setEditingContent(true);
+  };
+
+  const handleSaveContent = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+
+    if (!selectedRequirement || !selectedRequirement.id) {
+      console.error("Cannot edit content: requirement ID is missing");
+      setError("Failed to edit content: Missing requirement ID");
+      setEditingContent(false);
+      return;
+    }
+
+    try {
+      setLoading(true);
+      const api = await createAuthenticatedRequest(currentUser);
+
+      const updateData = {
+        title: selectedRequirement.title,
+        description: selectedRequirement.description,
+        sourceType: selectedRequirement.sourceType,
+        sourceContent: contentEditData,
+        sourceFileUrl: selectedRequirement.sourceFileUrl,
+      };
+
+      await api.requirementService.updateRequirement(
+        projectId,
+        selectedRequirement.id,
+        updateData
+      );
+
+      let updatedRequirementData;
+      try {
+        updatedRequirementData = await api.requirementService.getRequirement(
+          projectId,
+          selectedRequirement.id
+        );
+      } catch {
+        console.log("Could not fetch updated requirement, will update locally");
+      }
+
+      setEditingContent(false);
+
+      if (updatedRequirementData) {
+        setSelectedRequirement(updatedRequirementData);
+
+        setRequirements(
+          requirements.map((req) =>
+            req.id === selectedRequirement.id ? updatedRequirementData : req
+          )
+        );
+      } else {
+        const updatedRequirement = {
+          ...selectedRequirement,
+          sourceContent: contentEditData,
+        };
+        setSelectedRequirement(updatedRequirement);
+
+        setRequirements(
+          requirements.map((req) =>
+            req.id === selectedRequirement.id ? updatedRequirement : req
+          )
+        );
+      }
+    } catch (err) {
+      console.error("Failed to edit content:", err);
+      setError("Failed to edit content");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const cancelContentEdit = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setEditingContent(false);
+    setContentEditData("");
+  };
+
   const renderPagination = () => {
     if (totalPages <= 1) return null;
 
@@ -345,16 +433,53 @@ const RequirementsList: React.FC<RequirementsListProps> = ({ projectId }) => {
         {selectedRequirement.sourceType === "TEXT" &&
           selectedRequirement.sourceContent && (
             <div className={styles.requirementSection}>
-              <h4>Content</h4>
+              <div className={styles.contentHeading}>
+                <h4>Content</h4>
+                {!editingContent && (
+                  <RequirementContentEditIcon
+                    onClick={handleContentEditClick}
+                  />
+                )}
+                {editingContent && (
+                  <div className={styles.contentActions}>
+                    <SaveIcon onClick={handleSaveContent} />
+                    <CancelIcon onClick={cancelContentEdit} />
+                  </div>
+                )}
+              </div>
               <div className={styles.sourceContent}>
-                <pre>{selectedRequirement.sourceContent}</pre>
+                {editingContent ? (
+                  <textarea
+                    className={styles.contentTextarea}
+                    value={contentEditData}
+                    onChange={(e) => setContentEditData(e.target.value)}
+                    autoFocus
+                  />
+                ) : (
+                  <pre>{selectedRequirement.sourceContent}</pre>
+                )}
               </div>
             </div>
           )}
 
         {selectedRequirement.sourceType === "PDF" && (
           <div className={styles.requirementSection}>
-            <h4>Content</h4>
+            <div className={styles.contentHeading}>
+              <h4>Content</h4>
+              {!editingContent &&
+                selectedRequirement.sourceContent &&
+                !selectedRequirement.sourceContent.startsWith("PDF:") && (
+                  <RequirementContentEditIcon
+                    onClick={handleContentEditClick}
+                  />
+                )}
+              {editingContent && (
+                <div className={styles.contentActions}>
+                  <SaveIcon onClick={handleSaveContent} />
+                  <CancelIcon onClick={cancelContentEdit} />
+                </div>
+              )}
+            </div>
             {selectedRequirement.sourceFileUrl && (
               <a
                 href={selectedRequirement.sourceFileUrl}
@@ -372,10 +497,15 @@ const RequirementsList: React.FC<RequirementsListProps> = ({ projectId }) => {
                     Text extraction not available for this PDF:{" "}
                     {selectedRequirement.sourceContent.substring(4).trim()}
                   </p>
+                ) : editingContent ? (
+                  <textarea
+                    className={styles.contentTextarea}
+                    value={contentEditData}
+                    onChange={(e) => setContentEditData(e.target.value)}
+                    autoFocus
+                  />
                 ) : (
-                  <>
-                    <pre>{selectedRequirement.sourceContent}</pre>
-                  </>
+                  <pre>{selectedRequirement.sourceContent}</pre>
                 )}
               </div>
             )}

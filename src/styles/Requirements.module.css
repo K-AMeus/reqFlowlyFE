@@ -762,3 +762,132 @@
 .requirementDeleteIcon svg path {
   fill: #ffffff;
 }
+
+.contentEditIcon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: auto;
+  height: auto;
+  border-radius: 4px;
+  background-color: #f0f2f5;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: none;
+  border: 1px solid rgba(30, 73, 118, 0.15);
+  padding: 4px;
+  margin: 0 0 0 8px;
+  vertical-align: middle;
+}
+
+.contentEditIcon:hover {
+  background-color: rgba(30, 73, 118, 0.1);
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.contentEditIcon svg {
+  width: 14px;
+  height: 14px;
+}
+
+.contentEditIcon svg path {
+  fill: #1e4976;
+}
+
+.saveIcon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: auto;
+  height: auto;
+  border-radius: 6px;
+  background-color: #4caf50; /* Green color for save */
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 6px rgba(76, 175, 80, 0.3);
+  border: 1px solid rgba(76, 175, 80, 0.5);
+  padding: 6px;
+  margin: 0 5px 0 0;
+  vertical-align: middle;
+}
+
+.saveIcon:hover {
+  background-color: #388e3c;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(76, 175, 80, 0.4);
+}
+
+.saveIcon svg {
+  width: 14px;
+  height: 14px;
+}
+
+.saveIcon svg path {
+  fill: #ffffff;
+}
+
+.cancelIcon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: auto;
+  height: auto;
+  border-radius: 6px;
+  background-color: #757575;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 6px rgba(117, 117, 117, 0.3);
+  border: 1px solid rgba(117, 117, 117, 0.5);
+  padding: 6px;
+  margin: 0;
+  vertical-align: middle;
+}
+
+.cancelIcon:hover {
+  background-color: #616161;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(117, 117, 117, 0.4);
+}
+
+.cancelIcon svg {
+  width: 14px;
+  height: 14px;
+}
+
+.cancelIcon svg path {
+  fill: #ffffff;
+}
+
+.contentActions {
+  display: inline-flex;
+  align-items: center;
+  margin-left: 8px;
+  vertical-align: middle;
+}
+
+.contentTextarea {
+  width: 100%;
+  min-height: 200px;
+  font-family: "Consolas", monospace;
+  font-size: 0.9rem;
+  line-height: 1.5;
+  padding: 1rem;
+  border: 1px solid rgba(30, 73, 118, 0.2);
+  border-radius: 4px;
+  background-color: #f8f9fa;
+  color: #455a64;
+  margin-top: 0.5rem;
+  resize: vertical;
+}
+
+.contentTextarea:focus {
+  outline: none;
+  border-color: #1e4976;
+  box-shadow: 0 0 0 2px rgba(30, 73, 118, 0.1);
+}
+
+.contentHeading {
+  display: flex;
+  align-items: center;
+}
