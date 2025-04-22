@@ -709,17 +709,20 @@
   align-items: center;
   justify-content: center;
   padding: 4rem 0;
-  color: #546e7a;
+  color: #000000;
+  font-weight: 500;
 }
 
 .spinner {
-  width: 3rem;
-  height: 3rem;
-  border: 3px solid rgba(30, 73, 118, 0.1);
+  width: 2.5rem;
+  height: 2.5rem;
+  border: 3px solid rgba(225, 235, 245, 0.6);
   border-radius: 50%;
   border-top-color: #1e4976;
-  animation: spin 1s linear infinite;
+  border-left-color: #1e4976;
+  animation: spin 1.2s cubic-bezier(0.55, 0.15, 0.45, 0.85) infinite;
   margin-bottom: 1rem;
+  box-shadow: 0 0 15px rgba(30, 73, 118, 0.25);
 }
 
 @keyframes spin {

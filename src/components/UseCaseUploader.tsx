@@ -5,6 +5,7 @@ import { createAuthenticatedRequest } from "../helpers/apiUtils";
 import { useParams } from "react-router-dom";
 import { RequirementCreateRequestDto } from "../services/RequirementService";
 import { UploaderDeleteIcon, AddIcon } from "../helpers/icons";
+import pdfToText from "react-pdftotext";
 
 interface UseCaseResponse {
   domainObjects: { [key: string]: string[] };
@@ -13,6 +14,7 @@ interface UseCaseResponse {
 
 const UseCaseUploader: React.FC = () => {
   const [description, setDescription] = useState("");
+  const [requirementName, setRequirementName] = useState("");
   const [customPrompt, setCustomPrompt] = useState("");
   const [file, setFile] = useState<File | null>(null);
   const [domainObjects, setDomainObjects] = useState<{
@@ -31,6 +33,8 @@ const UseCaseUploader: React.FC = () => {
   const [activeView, setActiveView] = useState<"input" | "results">("input");
   const [resultsReady, setResultsReady] = useState(false);
   const [savingRequirement, setSavingRequirement] = useState(false);
+  const [pdfText, setPdfText] = useState<string>("");
+  const [extractingPdfText, setExtractingPdfText] = useState(false);
 
   const { currentUser } = useAuth();
   const { projectId } = useParams<{ projectId: string }>();
@@ -69,8 +73,10 @@ const UseCaseUploader: React.FC = () => {
           setSavingRequirement(true);
 
           const requirementData: RequirementCreateRequestDto = {
-            title: `Requirement from ${new Date().toLocaleString()}`,
-            description: "Domain objects extracted from text input",
+            title:
+              requirementName.trim() ||
+              `Requirement from ${new Date().toLocaleString()}`,
+            description: "Requirements extracted from text input",
             sourceType: "TEXT",
             sourceContent: description,
           };
@@ -101,6 +107,40 @@ const UseCaseUploader: React.FC = () => {
     }
   };
 
+  const onFileChange = async (e: ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files.length > 0) {
+      const selectedFile = e.target.files[0];
+      setFile(selectedFile);
+      setPdfText("");
+
+      if (selectedFile.type === "application/pdf") {
+        try {
+          setExtractingPdfText(true);
+          setError("");
+
+          const extractedText = await pdfToText(selectedFile);
+
+          if (extractedText && extractedText.length > 0) {
+            setPdfText(extractedText);
+          } else {
+            setPdfText(`PDF: ${selectedFile.name}`);
+            setError(
+              "Could not extract text from the PDF. The file may be scanned or contain only images."
+            );
+          }
+        } catch (error) {
+          console.error("Error processing PDF:", error);
+          setError(
+            "Failed to extract text from PDF. Please try again or use a different file."
+          );
+          setPdfText(`PDF: ${selectedFile.name}`);
+        } finally {
+          setExtractingPdfText(false);
+        }
+      }
+    }
+  };
+
   const handleFileSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!file) return;
@@ -124,11 +164,16 @@ const UseCaseUploader: React.FC = () => {
         try {
           setSavingRequirement(true);
 
+          const pdfContent =
+            pdfText && pdfText.trim() ? pdfText : `PDF: ${file.name}`;
+
           const requirementData: RequirementCreateRequestDto = {
-            title: `Requirement from ${new Date().toLocaleString()}`,
-            description: "Domain objects extracted from PDF upload",
+            title:
+              requirementName.trim() ||
+              `Requirement from ${new Date().toLocaleString()}`,
+            description: "Requirements extracted from PDF upload",
             sourceType: "PDF",
-            sourceContent: file.name,
+            sourceContent: pdfContent,
           };
 
           await api.requirementService.createRequirement(
@@ -159,12 +204,6 @@ const UseCaseUploader: React.FC = () => {
       setError("Error processing file upload.");
     } finally {
       setLoading(false);
-    }
-  };
-
-  const onFileChange = (e: ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files.length > 0) {
-      setFile(e.target.files[0]);
     }
   };
 
@@ -214,9 +253,7 @@ const UseCaseUploader: React.FC = () => {
         <div className={styles.diagonalLine}></div>
         <div className={styles.diagonalLine}></div>
         <div className={styles.diagonalLine}></div>
-        <h1 className={styles.title}>
-          ReqFlowly Use Case & Test Case Generator
-        </h1>
+        <h1 className={styles.title}>Domain object Generator</h1>
 
         {hasResults && (
           <div className={styles.mainTabs}>
@@ -264,19 +301,43 @@ const UseCaseUploader: React.FC = () => {
 
             {selectedTab === "text" && (
               <form onSubmit={handleTextSubmit} className={styles.form}>
-                <textarea
-                  className={styles.textarea}
-                  value={description}
-                  onChange={(e) => setDescription(e.target.value)}
-                  placeholder="Enter your requirements here..."
-                />
-                <input
-                  type="text"
-                  className={styles.customPromptInput}
-                  value={customPrompt}
-                  onChange={(e) => setCustomPrompt(e.target.value)}
-                  placeholder="Enter your custom prompt (optional)"
-                />
+                <div className={styles.inputWrapper}>
+                  <label className={styles.inputLabel}>
+                    Requirement identifier
+                  </label>
+                  <input
+                    type="text"
+                    className={styles.customPromptInput}
+                    value={requirementName}
+                    onChange={(e) => setRequirementName(e.target.value)}
+                    placeholder="Enter a name to identify this requirement"
+                    required
+                  />
+                </div>
+                <div className={styles.inputWrapper}>
+                  <label className={styles.inputLabel}>
+                    Requirements specification
+                  </label>
+                  <textarea
+                    className={styles.textarea}
+                    value={description}
+                    onChange={(e) => setDescription(e.target.value)}
+                    placeholder="Enter your requirements details here"
+                    required
+                  />
+                </div>
+                <div className={styles.inputWrapper}>
+                  <label className={`${styles.inputLabel} ${styles.optional}`}>
+                    Custom GPT instructions (Optional)
+                  </label>
+                  <input
+                    type="text"
+                    className={styles.customPromptInput}
+                    value={customPrompt}
+                    onChange={(e) => setCustomPrompt(e.target.value)}
+                    placeholder="Specific instructions for processing this requirement"
+                  />
+                </div>
                 <button
                   type="submit"
                   disabled={loading || savingRequirement}
@@ -301,22 +362,60 @@ const UseCaseUploader: React.FC = () => {
 
             {selectedTab === "file" && (
               <form onSubmit={handleFileSubmit} className={styles.form}>
-                <input
-                  type="file"
-                  accept="application/pdf"
-                  onChange={onFileChange}
-                  className={styles.fileInput}
-                />
-                <input
-                  type="text"
-                  className={styles.customPromptInput}
-                  value={customPrompt}
-                  onChange={(e) => setCustomPrompt(e.target.value)}
-                  placeholder="Enter your custom prompt (optional)"
-                />
+                <div className={styles.inputWrapper}>
+                  <label className={styles.inputLabel}>
+                    Requirement identifier
+                  </label>
+                  <input
+                    type="text"
+                    className={styles.customPromptInput}
+                    value={requirementName}
+                    onChange={(e) => setRequirementName(e.target.value)}
+                    placeholder="Enter a name to identify this requirement"
+                    required
+                  />
+                </div>
+                <div className={styles.inputWrapper}>
+                  <label className={styles.inputLabel}>PDF document</label>
+                  <input
+                    type="file"
+                    accept="application/pdf"
+                    onChange={onFileChange}
+                    className={styles.fileInput}
+                    required
+                  />
+                  {extractingPdfText && (
+                    <div className={styles.pdfExtractionInfo}>
+                      <span className={styles.loading}></span>
+                      Extracting text from PDF...
+                    </div>
+                  )}
+                  {!extractingPdfText &&
+                    pdfText &&
+                    !pdfText.startsWith("PDF:") && (
+                      <div className={styles.pdfExtractionSuccess}>
+                        ✓ Text successfully extracted (
+                        {Math.round(pdfText.length / 1000)}K characters)
+                      </div>
+                    )}
+                </div>
+                <div className={styles.inputWrapper}>
+                  <label className={`${styles.inputLabel} ${styles.optional}`}>
+                    Custom GPT instructions (Optional)
+                  </label>
+                  <input
+                    type="text"
+                    className={styles.customPromptInput}
+                    value={customPrompt}
+                    onChange={(e) => setCustomPrompt(e.target.value)}
+                    placeholder="Specific instructions for processing this requirement"
+                  />
+                </div>
                 <button
                   type="submit"
-                  disabled={loading || !file || savingRequirement}
+                  disabled={
+                    loading || !file || savingRequirement || extractingPdfText
+                  }
                   className={styles.submitButton}
                 >
                   {loading ? (

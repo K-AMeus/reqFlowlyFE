@@ -850,3 +850,51 @@ tr.suggestedRow td {
 .removedRow td:last-child {
   padding-right: 40px;
 }
+
+.inputWrapper {
+  width: 100%;
+  margin-bottom: 16px;
+}
+
+.inputLabel {
+  display: block;
+  margin-bottom: 6px;
+  font-weight: 500;
+  font-size: 14px;
+  color: #ffffff;
+}
+
+.inputLabel::after {
+  content: " *";
+  color: #d32f2f;
+}
+
+.optional::after {
+  content: none;
+}
+
+.pdfExtractionInfo {
+  display: flex;
+  align-items: center;
+  margin-top: 10px;
+  padding: 10px 12px;
+  font-size: 0.9rem;
+  color: #a0c7f5;
+  background-color: rgba(30, 73, 118, 0.3);
+  border-radius: 6px;
+  border-left: 3px solid #4d89c4;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+.pdfExtractionSuccess {
+  display: flex;
+  align-items: center;
+  margin-top: 10px;
+  padding: 10px 12px;
+  font-size: 0.9rem;
+  color: #8fdc93;
+  background-color: rgba(30, 73, 118, 0.3);
+  border-radius: 6px;
+  border-left: 3px solid #4caf50;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}

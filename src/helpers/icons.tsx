@@ -1,6 +1,7 @@
 import React from "react";
 import styles from "../styles/Projects.module.css";
 import uploaderStyles from "../styles/UseCaseUploader.module.css";
+import requirementStyles from "../styles/Requirements.module.css";
 
 export const RequirementsLogo = () => (
   <svg
@@ -38,22 +39,7 @@ export const EditIcon = ({
 }: {
   onClick: (e: React.MouseEvent) => void;
 }) => (
-  <div
-    className={styles.editIcon}
-    onClick={onClick}
-    title="Edit project"
-    style={{
-      backgroundColor: "#1e4976",
-      color: "white",
-      borderRadius: "6px",
-      display: "flex",
-      alignItems: "center",
-      justifyContent: "center",
-      padding: "10px",
-      border: "1px solid rgba(30, 73, 118, 0.5)",
-      cursor: "pointer",
-    }}
-  >
+  <div className={styles.editIcon} onClick={onClick} title="Edit project">
     <svg
       width="18"
       height="18"
@@ -63,7 +49,7 @@ export const EditIcon = ({
     >
       <path
         d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34a.9959.9959 0 0 0-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"
-        fill="white"
+        fill="#ffffff"
       />
     </svg>
   </div>
@@ -213,6 +199,86 @@ export const AddIcon = ({ onClick }: { onClick: () => void }) => (
       xmlns="http://www.w3.org/2000/svg"
     >
       <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z" fill="currentColor" />
+    </svg>
+  </div>
+);
+
+export const PDFIcon = () => (
+  <svg
+    width="14"
+    height="14"
+    viewBox="0 0 24 24"
+    fill="none"
+    xmlns="http://www.w3.org/2000/svg"
+  >
+    <path
+      d="M8 16h8v2H8v-2zm0-4h8v2H8v-2zm6-10H6c-1.1 0-2 .9-2 2v16c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm4 18H6V4h7v5h5v11z"
+      fill="currentColor"
+    />
+  </svg>
+);
+
+export const TextIcon = () => (
+  <svg
+    width="14"
+    height="14"
+    viewBox="0 0 24 24"
+    fill="none"
+    xmlns="http://www.w3.org/2000/svg"
+  >
+    <path
+      d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z"
+      fill="currentColor"
+    />
+  </svg>
+);
+
+export const RequirementEditIcon = ({
+  onClick,
+}: {
+  onClick: (e: React.MouseEvent) => void;
+}) => (
+  <div
+    className={requirementStyles.requirementEditIcon}
+    onClick={onClick}
+    title="Edit requirement"
+  >
+    <svg
+      width="18"
+      height="18"
+      viewBox="0 0 24 24"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+    >
+      <path
+        d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34a.9959.9959 0 0 0-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"
+        fill="#ffffff"
+      />
+    </svg>
+  </div>
+);
+
+export const RequirementDeleteIcon = ({
+  onClick,
+}: {
+  onClick: (e: React.MouseEvent) => void;
+}) => (
+  <div
+    className={requirementStyles.requirementDeleteIcon}
+    onClick={onClick}
+    title="Delete requirement"
+  >
+    <svg
+      width="18"
+      height="18"
+      viewBox="0 0 24 24"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+    >
+      <path
+        d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"
+        fill="#ffffff"
+      />
     </svg>
   </div>
 );

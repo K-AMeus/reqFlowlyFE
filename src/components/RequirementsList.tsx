@@ -1,9 +1,18 @@
 import React, { useState, useEffect } from "react";
+import ReactDOM from "react-dom";
 import styles from "../styles/Requirements.module.css";
 import { useAuth } from "../context/AuthContext";
 import { createAuthenticatedRequest } from "../helpers/apiUtils";
 import { RequirementDto } from "../services/RequirementService";
 import { formatDate, formatTimeAgo } from "../helpers/dateUtils";
+import {
+  ChevronLeft,
+  ChevronRight,
+  PDFIcon,
+  TextIcon,
+  RequirementEditIcon,
+  RequirementDeleteIcon,
+} from "../helpers/icons";
 
 interface RequirementsListProps {
   projectId: string;
@@ -18,6 +27,16 @@ const RequirementsList: React.FC<RequirementsListProps> = ({ projectId }) => {
   const [selectedRequirement, setSelectedRequirement] =
     useState<RequirementDto | null>(null);
   const [viewMode, setViewMode] = useState<"list" | "detail">("list");
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [requirementToEdit, setRequirementToEdit] =
+    useState<RequirementDto | null>(null);
+  const [requirementToDelete, setRequirementToDelete] =
+    useState<RequirementDto | null>(null);
+  const [editFormData, setEditFormData] = useState({
+    title: "",
+    description: "",
+  });
 
   const { currentUser } = useAuth();
 
@@ -58,28 +77,233 @@ const RequirementsList: React.FC<RequirementsListProps> = ({ projectId }) => {
     setCurrentPage(page);
   };
 
+  const handleEditClick = (
+    e: React.MouseEvent,
+    requirement: RequirementDto
+  ) => {
+    e.stopPropagation();
+    setRequirementToEdit(requirement);
+    setEditFormData({
+      title: requirement.title,
+      description: requirement.description || "",
+    });
+    setShowEditModal(true);
+  };
+
+  const handleDeleteClick = (
+    e: React.MouseEvent,
+    requirement: RequirementDto
+  ) => {
+    e.stopPropagation();
+    setRequirementToDelete(requirement);
+    setShowDeleteConfirm(true);
+  };
+
+  const handleSaveEdit = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (!requirementToEdit || !requirementToEdit.id) {
+      console.error("Cannot edit: requirement ID is missing");
+      setError("Failed to edit requirement: Missing requirement ID");
+      setShowEditModal(false);
+      return;
+    }
+
+    try {
+      setLoading(true);
+      const api = await createAuthenticatedRequest(currentUser);
+
+      const updateData = {
+        title: editFormData.title,
+        description: editFormData.description,
+        sourceType: requirementToEdit.sourceType,
+        sourceContent: requirementToEdit.sourceContent,
+        sourceFileUrl: requirementToEdit.sourceFileUrl,
+      };
+
+      await api.requirementService.updateRequirement(
+        projectId,
+        requirementToEdit.id,
+        updateData
+      );
+
+      let updatedRequirementData;
+      try {
+        updatedRequirementData = await api.requirementService.getRequirement(
+          projectId,
+          requirementToEdit.id
+        );
+      } catch {
+        console.log(
+          "Could not fetch updated requirement, will refresh list instead"
+        );
+        await fetchRequirements();
+      }
+
+      setShowEditModal(false);
+      setRequirementToEdit(null);
+
+      if (updatedRequirementData) {
+        if (
+          selectedRequirement &&
+          selectedRequirement.id === requirementToEdit.id
+        ) {
+          setSelectedRequirement(updatedRequirementData);
+        }
+
+        setRequirements(
+          requirements.map((req) =>
+            req.id === requirementToEdit.id ? updatedRequirementData : req
+          )
+        );
+      } else {
+        if (
+          selectedRequirement &&
+          selectedRequirement.id === requirementToEdit.id
+        ) {
+          const updatedRequirement = {
+            ...selectedRequirement,
+            title: editFormData.title,
+            description: editFormData.description,
+          };
+          setSelectedRequirement(updatedRequirement);
+        }
+
+        await fetchRequirements();
+      }
+    } catch (err) {
+      console.error("Failed to edit requirement:", err);
+      setError("Failed to edit requirement");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!requirementToDelete || !requirementToDelete.id) {
+      console.error("Cannot delete: requirement ID is missing");
+      setError("Failed to delete requirement: Missing requirement ID");
+      setShowDeleteConfirm(false);
+      return;
+    }
+
+    try {
+      setLoading(true);
+      const api = await createAuthenticatedRequest(currentUser);
+      await api.requirementService.deleteRequirement(
+        projectId,
+        requirementToDelete.id
+      );
+
+      setShowDeleteConfirm(false);
+      setRequirementToDelete(null);
+
+      if (
+        selectedRequirement &&
+        selectedRequirement.id === requirementToDelete.id
+      ) {
+        setViewMode("list");
+        setSelectedRequirement(null);
+      }
+
+      await fetchRequirements();
+    } catch (err) {
+      console.error("Failed to delete requirement:", err);
+      setError("Failed to delete requirement");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const cancelDelete = () => {
+    setShowDeleteConfirm(false);
+    setRequirementToDelete(null);
+  };
+
+  const cancelEdit = () => {
+    setShowEditModal(false);
+    setRequirementToEdit(null);
+    setEditFormData({ title: "", description: "" });
+  };
+
   const renderPagination = () => {
     if (totalPages <= 1) return null;
 
+    const pageNumbers = [];
+    const showEllipsis = totalPages > 5;
+    const startPage = showEllipsis
+      ? Math.max(0, Math.min(currentPage - 1, totalPages - 4))
+      : 0;
+    const endPage = showEllipsis
+      ? Math.min(startPage + 3, totalPages - 1)
+      : totalPages - 1;
+
+    for (let i = startPage; i <= endPage; i++) {
+      pageNumbers.push(
+        <button
+          key={i}
+          className={`${styles.pageButton} ${
+            currentPage === i ? styles.activePage : ""
+          }`}
+          onClick={() => handlePageChange(i)}
+          aria-label={`Page ${i + 1}`}
+        >
+          {i + 1}
+        </button>
+      );
+    }
+
     return (
       <div className={styles.pagination}>
-        <button
-          className={styles.paginationButton}
-          disabled={currentPage === 0}
-          onClick={() => handlePageChange(currentPage - 1)}
-        >
-          Previous
-        </button>
-        <span className={styles.pageInfo}>
-          Page {currentPage + 1} of {totalPages}
-        </span>
-        <button
-          className={styles.paginationButton}
-          disabled={currentPage >= totalPages - 1}
-          onClick={() => handlePageChange(currentPage + 1)}
-        >
-          Next
-        </button>
+        <div className={styles.paginationControls}>
+          <button
+            className={styles.pageNavButton}
+            onClick={() => handlePageChange(currentPage - 1)}
+            disabled={currentPage === 0}
+            aria-label="Previous page"
+          >
+            <ChevronLeft />
+          </button>
+
+          {showEllipsis && startPage > 0 && (
+            <>
+              <button
+                className={styles.pageButton}
+                onClick={() => handlePageChange(0)}
+                aria-label="First page"
+              >
+                1
+              </button>
+              {startPage > 1 && <span className={styles.ellipsis}>...</span>}
+            </>
+          )}
+
+          {pageNumbers}
+
+          {showEllipsis && endPage < totalPages - 1 && (
+            <>
+              {endPage < totalPages - 2 && (
+                <span className={styles.ellipsis}>...</span>
+              )}
+              <button
+                className={styles.pageButton}
+                onClick={() => handlePageChange(totalPages - 1)}
+                aria-label="Last page"
+              >
+                {totalPages}
+              </button>
+            </>
+          )}
+
+          <button
+            className={styles.pageNavButton}
+            onClick={() => handlePageChange(currentPage + 1)}
+            disabled={currentPage === totalPages - 1}
+            aria-label="Next page"
+          >
+            <ChevronRight />
+          </button>
+        </div>
       </div>
     );
   };
@@ -89,9 +313,19 @@ const RequirementsList: React.FC<RequirementsListProps> = ({ projectId }) => {
 
     return (
       <div className={styles.requirementDetail}>
-        <button className={styles.backButton} onClick={handleBackToList}>
-          ← Back to Requirements
-        </button>
+        <div className={styles.requirementActions}>
+          <button className={styles.backButton} onClick={handleBackToList}>
+            ← Back to Requirements
+          </button>
+          <div className={styles.actionIcons}>
+            <RequirementEditIcon
+              onClick={(e) => handleEditClick(e, selectedRequirement)}
+            />
+            <RequirementDeleteIcon
+              onClick={(e) => handleDeleteClick(e, selectedRequirement)}
+            />
+          </div>
+        </div>
 
         <div className={styles.requirementHeader}>
           <h3>{selectedRequirement.title}</h3>
@@ -111,27 +345,42 @@ const RequirementsList: React.FC<RequirementsListProps> = ({ projectId }) => {
         {selectedRequirement.sourceType === "TEXT" &&
           selectedRequirement.sourceContent && (
             <div className={styles.requirementSection}>
-              <h4>Source Content</h4>
+              <h4>Content</h4>
               <div className={styles.sourceContent}>
                 <pre>{selectedRequirement.sourceContent}</pre>
               </div>
             </div>
           )}
 
-        {selectedRequirement.sourceType === "FILE" &&
-          selectedRequirement.sourceFileUrl && (
-            <div className={styles.requirementSection}>
-              <h4>Source File</h4>
+        {selectedRequirement.sourceType === "PDF" && (
+          <div className={styles.requirementSection}>
+            <h4>Content</h4>
+            {selectedRequirement.sourceFileUrl && (
               <a
                 href={selectedRequirement.sourceFileUrl}
                 target="_blank"
                 rel="noopener noreferrer"
                 className={styles.fileLink}
               >
-                View File
+                View Original PDF
               </a>
-            </div>
-          )}
+            )}
+            {selectedRequirement.sourceContent && (
+              <div className={styles.sourceContent}>
+                {selectedRequirement.sourceContent.startsWith("PDF:") ? (
+                  <p className={styles.pdfPlaceholder}>
+                    Text extraction not available for this PDF:{" "}
+                    {selectedRequirement.sourceContent.substring(4).trim()}
+                  </p>
+                ) : (
+                  <>
+                    <pre>{selectedRequirement.sourceContent}</pre>
+                  </>
+                )}
+              </div>
+            )}
+          </div>
+        )}
       </div>
     );
   };
@@ -170,8 +419,16 @@ const RequirementsList: React.FC<RequirementsListProps> = ({ projectId }) => {
             >
               <div className={styles.requirementCardHeader}>
                 <h3>{requirement.title}</h3>
-                <span className={styles.requirementType}>
-                  {requirement.sourceType === "TEXT" ? "Text" : "File"}
+                <span
+                  className={`${styles.requirementType} ${
+                    requirement.sourceType === "PDF"
+                      ? styles.pdfType
+                      : styles.txtType
+                  }`}
+                >
+                  {requirement.sourceType === "PDF" && <PDFIcon />}
+                  {requirement.sourceType === "TEXT" && <TextIcon />}
+                  {requirement.sourceType === "TEXT" ? "TXT" : "PDF"}
                 </span>
               </div>
 
@@ -201,6 +458,102 @@ const RequirementsList: React.FC<RequirementsListProps> = ({ projectId }) => {
 
       {viewMode === "list" && renderRequirementsList()}
       {viewMode === "detail" && renderRequirementDetail()}
+
+      {showEditModal &&
+        requirementToEdit &&
+        ReactDOM.createPortal(
+          <div className={styles.modalOverlay}>
+            <div className={styles.formDialog}>
+              <h3>Edit Requirement</h3>
+              <form onSubmit={handleSaveEdit}>
+                <div className={styles.formGroup}>
+                  <label htmlFor="editTitle">Requirement Title</label>
+                  <input
+                    type="text"
+                    id="editTitle"
+                    value={editFormData.title}
+                    onChange={(e) =>
+                      setEditFormData({
+                        ...editFormData,
+                        title: e.target.value,
+                      })
+                    }
+                    placeholder="Enter requirement title"
+                    required
+                    maxLength={255}
+                  />
+                </div>
+                <div className={styles.formGroup}>
+                  <label htmlFor="editDescription">
+                    Description (Optional)
+                  </label>
+                  <textarea
+                    id="editDescription"
+                    value={editFormData.description}
+                    onChange={(e) =>
+                      setEditFormData({
+                        ...editFormData,
+                        description: e.target.value,
+                      })
+                    }
+                    placeholder="Enter requirement description"
+                  />
+                </div>
+                <div className={styles.formActions}>
+                  <button
+                    type="button"
+                    className={styles.cancelButton}
+                    onClick={cancelEdit}
+                    disabled={loading}
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    className={styles.submitButton}
+                    disabled={loading}
+                  >
+                    {loading ? "Saving..." : "Save Changes"}
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>,
+          document.body
+        )}
+
+      {showDeleteConfirm &&
+        requirementToDelete &&
+        ReactDOM.createPortal(
+          <div className={styles.modalOverlay}>
+            <div className={styles.confirmDialog}>
+              <h3>Delete Requirement?</h3>
+              <p>
+                Are you sure you wish to delete the requirement "
+                {requirementToDelete.title}"? This action cannot be undone.
+              </p>
+              <div className={styles.formActions}>
+                <button
+                  type="button"
+                  className={styles.cancelButton}
+                  onClick={cancelDelete}
+                  disabled={loading}
+                >
+                  No, Cancel
+                </button>
+                <button
+                  type="button"
+                  className={styles.deleteButton}
+                  onClick={handleConfirmDelete}
+                  disabled={loading}
+                >
+                  {loading ? "Deleting..." : "Yes, Delete"}
+                </button>
+              </div>
+            </div>
+          </div>,
+          document.body
+        )}
     </div>
   );
 };

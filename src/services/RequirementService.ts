@@ -67,7 +67,7 @@ export class RequirementService {
   async getAllRequirements(
     projectId: string,
     page = 0,
-    size = 10
+    size = 9
   ): Promise<RequirementsPageResponse> {
     const response = await this.api.get(
       `${this.BASE_URL}/${projectId}/requirements`,
