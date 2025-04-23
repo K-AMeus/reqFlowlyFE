@@ -70,7 +70,12 @@ const LandingPage: React.FC = () => {
                     <div className={styles.mockupTab}>PDF Upload</div>
                   </div>
                   <div className={styles.mockupTextarea}></div>
-                  <div className={styles.mockupButton}>Generate Cases</div>
+                  <button
+                    onClick={navigateToLogin}
+                    className={styles.mockupButton}
+                  >
+                    Generate Cases
+                  </button>
                   <div className={styles.mockupResultsSection}>
                     <div className={styles.mockupResultsHeader}>
                       Domain Objects
