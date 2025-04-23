@@ -295,62 +295,6 @@
   fill: #ffffff;
 }
 
-.requirementDetail :global(.editIcon) {
-  display: flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-  width: 30px !important;
-  height: 30px !important;
-  border-radius: 50% !important;
-  background-color: #1e4976 !important;
-  cursor: pointer !important;
-  transition: all 0.2s ease !important;
-  box-shadow: 0 2px 6px rgba(30, 73, 118, 0.3) !important;
-  margin: 0 !important;
-  padding: 0 !important;
-  border: none !important;
-  opacity: 1 !important;
-  transform: none !important;
-}
-
-.requirementDetail :global(.editIcon) svg path {
-  fill: #ffffff !important;
-}
-
-.requirementDetail :global(.deleteIcon) {
-  display: flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-  width: 30px !important;
-  height: 30px !important;
-  border-radius: 50% !important;
-  background-color: #d32f2f !important;
-  cursor: pointer !important;
-  transition: all 0.2s ease !important;
-  box-shadow: 0 2px 6px rgba(211, 47, 47, 0.3) !important;
-  margin: 0 !important;
-  padding: 0 !important;
-  border: none !important;
-  opacity: 1 !important;
-  transform: none !important;
-}
-
-.requirementDetail :global(.deleteIcon) svg path {
-  fill: #ffffff !important;
-}
-
-.requirementDetail :global(.editIcon:hover) {
-  background-color: #2c5d8f !important;
-  transform: translateY(-2px) !important;
-  box-shadow: 0 4px 8px rgba(30, 73, 118, 0.4) !important;
-}
-
-.requirementDetail :global(.deleteIcon:hover) {
-  background-color: #b71c1c !important;
-  transform: translateY(-2px) !important;
-  box-shadow: 0 4px 8px rgba(211, 47, 47, 0.4) !important;
-}
-
 .backButton {
   background-color: #f0f2f5;
   border: 1px solid rgba(30, 73, 118, 0.15);
@@ -763,40 +707,8 @@
   fill: #ffffff;
 }
 
-.contentEditIcon {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: auto;
-  height: auto;
-  border-radius: 4px;
-  background-color: #f0f2f5;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  box-shadow: none;
-  border: 1px solid rgba(30, 73, 118, 0.15);
-  padding: 4px;
-  margin: 0 0 0 8px;
-  vertical-align: middle;
-}
-
-.contentEditIcon:hover {
-  background-color: rgba(30, 73, 118, 0.1);
-  transform: translateY(-1px);
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-}
-
-.contentEditIcon svg {
-  width: 14px;
-  height: 14px;
-}
-
-.contentEditIcon svg path {
-  fill: #1e4976;
-}
-
 .saveIcon {
-  display: inline-flex;
+  display: flex;
   align-items: center;
   justify-content: center;
   width: auto;
@@ -807,9 +719,8 @@
   transition: all 0.2s ease;
   box-shadow: 0 2px 6px rgba(76, 175, 80, 0.3);
   border: 1px solid rgba(76, 175, 80, 0.5);
-  padding: 6px;
-  margin: 0 5px 0 0;
-  vertical-align: middle;
+  padding: 10px;
+  margin: 0;
 }
 
 .saveIcon:hover {
@@ -819,16 +730,32 @@
 }
 
 .saveIcon svg {
-  width: 14px;
-  height: 14px;
+  width: 18px;
+  height: 18px;
 }
 
 .saveIcon svg path {
   fill: #ffffff;
 }
 
+.saveIconDisabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+  background-color: #388e3c !important;
+}
+
+.saveIconSpinner {
+  width: 18px;
+  height: 18px;
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  border-radius: 50%;
+  border-top-color: #ffffff;
+  animation: spin 1s linear infinite;
+  margin: 0;
+}
+
 .cancelIcon {
-  display: inline-flex;
+  display: flex;
   align-items: center;
   justify-content: center;
   width: auto;
@@ -839,9 +766,8 @@
   transition: all 0.2s ease;
   box-shadow: 0 2px 6px rgba(117, 117, 117, 0.3);
   border: 1px solid rgba(117, 117, 117, 0.5);
-  padding: 6px;
+  padding: 10px;
   margin: 0;
-  vertical-align: middle;
 }
 
 .cancelIcon:hover {
@@ -851,8 +777,8 @@
 }
 
 .cancelIcon svg {
-  width: 14px;
-  height: 14px;
+  width: 18px;
+  height: 18px;
 }
 
 .cancelIcon svg path {
@@ -860,10 +786,9 @@
 }
 
 .contentActions {
-  display: inline-flex;
+  display: flex;
   align-items: center;
-  margin-left: 8px;
-  vertical-align: middle;
+  gap: 0.75rem;
 }
 
 .contentTextarea {
@@ -890,4 +815,43 @@
 .contentHeading {
   display: flex;
   align-items: center;
+}
+
+.titleInput {
+  width: 100%;
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #0a1929;
+  margin: 0 0 0.75rem 0;
+  padding: 0.5rem;
+  border: 1px solid rgba(30, 73, 118, 0.3);
+  border-radius: 4px;
+  background-color: #f8f9fa;
+  outline: none;
+  transition: all 0.2s ease;
+}
+
+.titleInput:focus {
+  border-color: #1e4976;
+  box-shadow: 0 0 0 2px rgba(30, 73, 118, 0.1);
+}
+
+.descriptionTextarea {
+  width: 100%;
+  min-height: 100px;
+  font-size: 0.95rem;
+  line-height: 1.6;
+  color: #455a64;
+  padding: 0.75rem;
+  border: 1px solid rgba(30, 73, 118, 0.2);
+  border-radius: 4px;
+  background-color: #f8f9fa;
+  resize: vertical;
+  outline: none;
+  transition: all 0.2s ease;
+}
+
+.descriptionTextarea:focus {
+  border-color: #1e4976;
+  box-shadow: 0 0 0 2px rgba(30, 73, 118, 0.1);
 }

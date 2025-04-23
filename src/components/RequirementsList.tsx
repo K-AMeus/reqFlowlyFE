@@ -12,8 +12,6 @@ import {
   TextIcon,
   RequirementEditIcon,
   RequirementDeleteIcon,
-  RequirementContentEditIcon,
-  SaveIcon,
   CancelIcon,
 } from "../helpers/icons";
 
@@ -30,18 +28,16 @@ const RequirementsList: React.FC<RequirementsListProps> = ({ projectId }) => {
   const [selectedRequirement, setSelectedRequirement] =
     useState<RequirementDto | null>(null);
   const [viewMode, setViewMode] = useState<"list" | "detail">("list");
-  const [showEditModal, setShowEditModal] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
-  const [requirementToEdit, setRequirementToEdit] =
-    useState<RequirementDto | null>(null);
   const [requirementToDelete, setRequirementToDelete] =
     useState<RequirementDto | null>(null);
-  const [editFormData, setEditFormData] = useState({
+  const [isEditingDetail, setIsEditingDetail] = useState(false);
+  const [detailEditData, setDetailEditData] = useState({
     title: "",
     description: "",
+    sourceContent: "",
   });
-  const [editingContent, setEditingContent] = useState(false);
-  const [contentEditData, setContentEditData] = useState("");
+  const [isSaving, setIsSaving] = useState(false);
 
   const { currentUser } = useAuth();
 
@@ -76,23 +72,11 @@ const RequirementsList: React.FC<RequirementsListProps> = ({ projectId }) => {
   const handleBackToList = () => {
     setViewMode("list");
     setSelectedRequirement(null);
+    setIsEditingDetail(false);
   };
 
   const handlePageChange = (page: number) => {
     setCurrentPage(page);
-  };
-
-  const handleEditClick = (
-    e: React.MouseEvent,
-    requirement: RequirementDto
-  ) => {
-    e.stopPropagation();
-    setRequirementToEdit(requirement);
-    setEditFormData({
-      title: requirement.title,
-      description: requirement.description || "",
-    });
-    setShowEditModal(true);
   };
 
   const handleDeleteClick = (
@@ -104,31 +88,44 @@ const RequirementsList: React.FC<RequirementsListProps> = ({ projectId }) => {
     setShowDeleteConfirm(true);
   };
 
-  const handleSaveEdit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleDetailEditClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (!selectedRequirement) return;
 
-    if (!requirementToEdit || !requirementToEdit.id) {
+    setDetailEditData({
+      title: selectedRequirement.title,
+      description: selectedRequirement.description || "",
+      sourceContent: selectedRequirement.sourceContent || "",
+    });
+    setIsEditingDetail(true);
+  };
+
+  const handleSaveDetailEdit = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+
+    if (!selectedRequirement || !selectedRequirement.id) {
       console.error("Cannot edit: requirement ID is missing");
       setError("Failed to edit requirement: Missing requirement ID");
-      setShowEditModal(false);
+      setIsEditingDetail(false);
       return;
     }
 
     try {
+      setIsSaving(true);
       setLoading(true);
       const api = await createAuthenticatedRequest(currentUser);
 
       const updateData = {
-        title: editFormData.title,
-        description: editFormData.description,
-        sourceType: requirementToEdit.sourceType,
-        sourceContent: requirementToEdit.sourceContent,
-        sourceFileUrl: requirementToEdit.sourceFileUrl,
+        title: detailEditData.title,
+        description: detailEditData.description,
+        sourceType: selectedRequirement.sourceType,
+        sourceContent: detailEditData.sourceContent,
+        sourceFileUrl: selectedRequirement.sourceFileUrl,
       };
 
       await api.requirementService.updateRequirement(
         projectId,
-        requirementToEdit.id,
+        selectedRequirement.id,
         updateData
       );
 
@@ -136,52 +133,55 @@ const RequirementsList: React.FC<RequirementsListProps> = ({ projectId }) => {
       try {
         updatedRequirementData = await api.requirementService.getRequirement(
           projectId,
-          requirementToEdit.id
+          selectedRequirement.id
         );
       } catch {
-        console.log(
-          "Could not fetch updated requirement, will refresh list instead"
-        );
-        await fetchRequirements();
+        console.log("Could not fetch updated requirement, will update locally");
       }
 
-      setShowEditModal(false);
-      setRequirementToEdit(null);
+      setIsEditingDetail(false);
 
       if (updatedRequirementData) {
-        if (
-          selectedRequirement &&
-          selectedRequirement.id === requirementToEdit.id
-        ) {
-          setSelectedRequirement(updatedRequirementData);
-        }
+        setSelectedRequirement(updatedRequirementData);
 
         setRequirements(
           requirements.map((req) =>
-            req.id === requirementToEdit.id ? updatedRequirementData : req
+            req.id === selectedRequirement.id ? updatedRequirementData : req
           )
         );
       } else {
-        if (
-          selectedRequirement &&
-          selectedRequirement.id === requirementToEdit.id
-        ) {
-          const updatedRequirement = {
-            ...selectedRequirement,
-            title: editFormData.title,
-            description: editFormData.description,
-          };
-          setSelectedRequirement(updatedRequirement);
-        }
+        // Update locally if we can't fetch from server
+        const updatedRequirement = {
+          ...selectedRequirement,
+          title: detailEditData.title,
+          description: detailEditData.description,
+          sourceContent: detailEditData.sourceContent,
+        };
+        setSelectedRequirement(updatedRequirement);
 
-        await fetchRequirements();
+        setRequirements(
+          requirements.map((req) =>
+            req.id === selectedRequirement.id ? updatedRequirement : req
+          )
+        );
       }
     } catch (err) {
       console.error("Failed to edit requirement:", err);
       setError("Failed to edit requirement");
     } finally {
       setLoading(false);
+      setIsSaving(false);
     }
+  };
+
+  const cancelDetailEdit = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setIsEditingDetail(false);
+    setDetailEditData({
+      title: "",
+      description: "",
+      sourceContent: "",
+    });
   };
 
   const handleConfirmDelete = async () => {
@@ -225,93 +225,10 @@ const RequirementsList: React.FC<RequirementsListProps> = ({ projectId }) => {
     setRequirementToDelete(null);
   };
 
-  const cancelEdit = () => {
-    setShowEditModal(false);
-    setRequirementToEdit(null);
-    setEditFormData({ title: "", description: "" });
-  };
-
-  const handleContentEditClick = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    if (!selectedRequirement) return;
-
-    setContentEditData(selectedRequirement.sourceContent || "");
-    setEditingContent(true);
-  };
-
-  const handleSaveContent = async (e: React.MouseEvent) => {
-    e.stopPropagation();
-
-    if (!selectedRequirement || !selectedRequirement.id) {
-      console.error("Cannot edit content: requirement ID is missing");
-      setError("Failed to edit content: Missing requirement ID");
-      setEditingContent(false);
-      return;
+  const handleCancelClick = (e: React.MouseEvent) => {
+    if (!isSaving) {
+      cancelDetailEdit(e);
     }
-
-    try {
-      setLoading(true);
-      const api = await createAuthenticatedRequest(currentUser);
-
-      const updateData = {
-        title: selectedRequirement.title,
-        description: selectedRequirement.description,
-        sourceType: selectedRequirement.sourceType,
-        sourceContent: contentEditData,
-        sourceFileUrl: selectedRequirement.sourceFileUrl,
-      };
-
-      await api.requirementService.updateRequirement(
-        projectId,
-        selectedRequirement.id,
-        updateData
-      );
-
-      let updatedRequirementData;
-      try {
-        updatedRequirementData = await api.requirementService.getRequirement(
-          projectId,
-          selectedRequirement.id
-        );
-      } catch {
-        console.log("Could not fetch updated requirement, will update locally");
-      }
-
-      setEditingContent(false);
-
-      if (updatedRequirementData) {
-        setSelectedRequirement(updatedRequirementData);
-
-        setRequirements(
-          requirements.map((req) =>
-            req.id === selectedRequirement.id ? updatedRequirementData : req
-          )
-        );
-      } else {
-        const updatedRequirement = {
-          ...selectedRequirement,
-          sourceContent: contentEditData,
-        };
-        setSelectedRequirement(updatedRequirement);
-
-        setRequirements(
-          requirements.map((req) =>
-            req.id === selectedRequirement.id ? updatedRequirement : req
-          )
-        );
-      }
-    } catch (err) {
-      console.error("Failed to edit content:", err);
-      setError("Failed to edit content");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const cancelContentEdit = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    setEditingContent(false);
-    setContentEditData("");
   };
 
   const renderPagination = () => {
@@ -406,80 +323,121 @@ const RequirementsList: React.FC<RequirementsListProps> = ({ projectId }) => {
             ← Back to Requirements
           </button>
           <div className={styles.actionIcons}>
-            <RequirementEditIcon
-              onClick={(e) => handleEditClick(e, selectedRequirement)}
-            />
-            <RequirementDeleteIcon
-              onClick={(e) => handleDeleteClick(e, selectedRequirement)}
-            />
+            {!isEditingDetail ? (
+              <>
+                <RequirementEditIcon onClick={handleDetailEditClick} />
+                <RequirementDeleteIcon
+                  onClick={(e) => handleDeleteClick(e, selectedRequirement)}
+                />
+              </>
+            ) : (
+              <>
+                <div
+                  className={`${styles.saveIcon} ${
+                    isSaving ? styles.saveIconDisabled : ""
+                  }`}
+                  onClick={!isSaving ? handleSaveDetailEdit : undefined}
+                  title="Save changes"
+                >
+                  {isSaving ? (
+                    <div className={styles.saveIconSpinner}></div>
+                  ) : (
+                    <svg
+                      width="18"
+                      height="18"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <path
+                        d="M9 16.2L4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4L9 16.2z"
+                        fill="#ffffff"
+                      />
+                    </svg>
+                  )}
+                </div>
+                <CancelIcon onClick={handleCancelClick} />
+              </>
+            )}
           </div>
         </div>
 
         <div className={styles.requirementHeader}>
-          <h3>{selectedRequirement.title}</h3>
+          {!isEditingDetail ? (
+            <h3>{selectedRequirement.title}</h3>
+          ) : (
+            <input
+              type="text"
+              className={styles.titleInput}
+              value={detailEditData.title}
+              onChange={(e) =>
+                setDetailEditData({
+                  ...detailEditData,
+                  title: e.target.value,
+                })
+              }
+              placeholder="Enter requirement title"
+              required
+            />
+          )}
           <div className={styles.requirementMeta}>
             <span>Created: {formatDate(selectedRequirement.createdAt)}</span>
             <span>Updated: {formatTimeAgo(selectedRequirement.updatedAt)}</span>
           </div>
         </div>
 
-        {selectedRequirement.description && (
+        <div className={styles.requirementSection}>
+          <h4>Description</h4>
+          {!isEditingDetail ? (
+            <p>
+              {selectedRequirement.description || (
+                <em>No description provided.</em>
+              )}
+            </p>
+          ) : (
+            <textarea
+              className={styles.descriptionTextarea}
+              value={detailEditData.description}
+              onChange={(e) =>
+                setDetailEditData({
+                  ...detailEditData,
+                  description: e.target.value,
+                })
+              }
+              placeholder="Enter requirement description"
+            />
+          )}
+        </div>
+
+        {selectedRequirement.sourceType === "TEXT" && (
           <div className={styles.requirementSection}>
-            <h4>Description</h4>
-            <p>{selectedRequirement.description}</p>
+            <h4>Content</h4>
+            <div className={styles.sourceContent}>
+              {!isEditingDetail ? (
+                <pre>
+                  {selectedRequirement.sourceContent || (
+                    <em>No content provided.</em>
+                  )}
+                </pre>
+              ) : (
+                <textarea
+                  className={styles.contentTextarea}
+                  value={detailEditData.sourceContent}
+                  onChange={(e) =>
+                    setDetailEditData({
+                      ...detailEditData,
+                      sourceContent: e.target.value,
+                    })
+                  }
+                />
+              )}
+            </div>
           </div>
         )}
 
-        {selectedRequirement.sourceType === "TEXT" &&
-          selectedRequirement.sourceContent && (
-            <div className={styles.requirementSection}>
-              <div className={styles.contentHeading}>
-                <h4>Content</h4>
-                {!editingContent && (
-                  <RequirementContentEditIcon
-                    onClick={handleContentEditClick}
-                  />
-                )}
-                {editingContent && (
-                  <div className={styles.contentActions}>
-                    <SaveIcon onClick={handleSaveContent} />
-                    <CancelIcon onClick={cancelContentEdit} />
-                  </div>
-                )}
-              </div>
-              <div className={styles.sourceContent}>
-                {editingContent ? (
-                  <textarea
-                    className={styles.contentTextarea}
-                    value={contentEditData}
-                    onChange={(e) => setContentEditData(e.target.value)}
-                    autoFocus
-                  />
-                ) : (
-                  <pre>{selectedRequirement.sourceContent}</pre>
-                )}
-              </div>
-            </div>
-          )}
-
         {selectedRequirement.sourceType === "PDF" && (
           <div className={styles.requirementSection}>
-            <div className={styles.contentHeading}>
-              <h4>Content</h4>
-              {!editingContent &&
-                selectedRequirement.sourceContent &&
-                !selectedRequirement.sourceContent.startsWith("PDF:") && (
-                  <RequirementContentEditIcon
-                    onClick={handleContentEditClick}
-                  />
-                )}
-              {editingContent && (
-                <div className={styles.contentActions}>
-                  <SaveIcon onClick={handleSaveContent} />
-                  <CancelIcon onClick={cancelContentEdit} />
-                </div>
-              )}
-            </div>
+            <h4>Content</h4>
             {selectedRequirement.sourceFileUrl && (
               <a
                 href={selectedRequirement.sourceFileUrl}
@@ -497,18 +455,30 @@ const RequirementsList: React.FC<RequirementsListProps> = ({ projectId }) => {
                     Text extraction not available for this PDF:{" "}
                     {selectedRequirement.sourceContent.substring(4).trim()}
                   </p>
-                ) : editingContent ? (
+                ) : !isEditingDetail ? (
+                  <pre>{selectedRequirement.sourceContent}</pre>
+                ) : (
                   <textarea
                     className={styles.contentTextarea}
-                    value={contentEditData}
-                    onChange={(e) => setContentEditData(e.target.value)}
-                    autoFocus
+                    value={detailEditData.sourceContent}
+                    onChange={(e) =>
+                      setDetailEditData({
+                        ...detailEditData,
+                        sourceContent: e.target.value,
+                      })
+                    }
                   />
-                ) : (
-                  <pre>{selectedRequirement.sourceContent}</pre>
                 )}
               </div>
             )}
+            {!selectedRequirement.sourceContent &&
+              !selectedRequirement.sourceFileUrl && (
+                <div className={styles.sourceContent}>
+                  <pre>
+                    <em>No content provided.</em>
+                  </pre>
+                </div>
+              )}
           </div>
         )}
       </div>
@@ -588,69 +558,6 @@ const RequirementsList: React.FC<RequirementsListProps> = ({ projectId }) => {
 
       {viewMode === "list" && renderRequirementsList()}
       {viewMode === "detail" && renderRequirementDetail()}
-
-      {showEditModal &&
-        requirementToEdit &&
-        ReactDOM.createPortal(
-          <div className={styles.modalOverlay}>
-            <div className={styles.formDialog}>
-              <h3>Edit Requirement</h3>
-              <form onSubmit={handleSaveEdit}>
-                <div className={styles.formGroup}>
-                  <label htmlFor="editTitle">Requirement Title</label>
-                  <input
-                    type="text"
-                    id="editTitle"
-                    value={editFormData.title}
-                    onChange={(e) =>
-                      setEditFormData({
-                        ...editFormData,
-                        title: e.target.value,
-                      })
-                    }
-                    placeholder="Enter requirement title"
-                    required
-                    maxLength={255}
-                  />
-                </div>
-                <div className={styles.formGroup}>
-                  <label htmlFor="editDescription">
-                    Description (Optional)
-                  </label>
-                  <textarea
-                    id="editDescription"
-                    value={editFormData.description}
-                    onChange={(e) =>
-                      setEditFormData({
-                        ...editFormData,
-                        description: e.target.value,
-                      })
-                    }
-                    placeholder="Enter requirement description"
-                  />
-                </div>
-                <div className={styles.formActions}>
-                  <button
-                    type="button"
-                    className={styles.cancelButton}
-                    onClick={cancelEdit}
-                    disabled={loading}
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    type="submit"
-                    className={styles.submitButton}
-                    disabled={loading}
-                  >
-                    {loading ? "Saving..." : "Save Changes"}
-                  </button>
-                </div>
-              </form>
-            </div>
-          </div>,
-          document.body
-        )}
 
       {showDeleteConfirm &&
         requirementToDelete &&

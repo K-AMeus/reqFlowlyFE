@@ -23,7 +23,6 @@ const Project: React.FC = () => {
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const [showEditModal, setShowEditModal] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [editFormData, setEditFormData] = useState({
     name: "",
@@ -31,6 +30,8 @@ const Project: React.FC = () => {
   });
   const [activePage, setActivePage] = useState("metadata");
   const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [isInlineEditing, setIsInlineEditing] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
 
   const { currentUser } = useAuth();
   const { projectId } = useParams<{ projectId?: string }>();
@@ -67,35 +68,35 @@ const Project: React.FC = () => {
         name: selectedProject.name,
         description: selectedProject.description || "",
       });
-      setShowEditModal(true);
+      setIsInlineEditing(true);
     }
   };
 
-  const handleSaveEdit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSaveEdit = async (e: React.MouseEvent) => {
+    e.stopPropagation();
 
     if (!selectedProject || !selectedProject.id) {
       console.error("Cannot edit: project ID is missing");
       setError("Failed to edit project: Missing project ID");
-      setShowEditModal(false);
+      setIsInlineEditing(false);
       return;
     }
 
     try {
-      setLoading(true);
+      setIsSaving(true);
       const api = await createAuthenticatedRequest(currentUser);
       await api.put(
         `/project-service/v1/projects/${selectedProject.id}`,
         editFormData
       );
 
-      setShowEditModal(false);
+      setIsInlineEditing(false);
       fetchProjectById(selectedProject.id);
     } catch (err) {
       console.error("Failed to edit project:", err);
       setError("Failed to edit project");
     } finally {
-      setLoading(false);
+      setIsSaving(false);
     }
   };
 
@@ -131,9 +132,15 @@ const Project: React.FC = () => {
     setShowDeleteConfirm(false);
   };
 
-  const cancelEdit = () => {
-    setShowEditModal(false);
-    setEditFormData({ name: "", description: "" });
+  const cancelInlineEdit = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setIsInlineEditing(false);
+    if (selectedProject) {
+      setEditFormData({
+        name: selectedProject.name,
+        description: selectedProject.description || "",
+      });
+    }
   };
 
   const handleBackToProjects = () => {
@@ -229,17 +236,97 @@ const Project: React.FC = () => {
             <div className={styles.unifiedContentContainer}>
               <div className={styles.metadataCard}>
                 <div className={styles.metadataHeader}>
-                  <h1>{selectedProject.name}</h1>
-                  <div className={styles.projectActions}>
-                    <EditIcon onClick={handleEditClick} />
-                    <DeleteIcon onClick={handleDeleteClick} />
-                  </div>
+                  {!isInlineEditing ? (
+                    <>
+                      <h1>{selectedProject.name}</h1>
+                      <div className={styles.projectActions}>
+                        <EditIcon onClick={handleEditClick} />
+                        <DeleteIcon onClick={handleDeleteClick} />
+                      </div>
+                    </>
+                  ) : (
+                    <>
+                      <input
+                        type="text"
+                        className={styles.titleInput}
+                        value={editFormData.name}
+                        onChange={(e) =>
+                          setEditFormData({
+                            ...editFormData,
+                            name: e.target.value,
+                          })
+                        }
+                        placeholder="Enter project name"
+                        required
+                      />
+                      <div className={styles.projectActions}>
+                        <div
+                          className={`${styles.saveIcon} ${
+                            isSaving ? styles.saveIconDisabled : ""
+                          }`}
+                          onClick={!isSaving ? handleSaveEdit : undefined}
+                          title="Save changes"
+                        >
+                          {isSaving ? (
+                            <div className={styles.saveIconSpinner}></div>
+                          ) : (
+                            <svg
+                              width="18"
+                              height="18"
+                              viewBox="0 0 24 24"
+                              fill="none"
+                              xmlns="http://www.w3.org/2000/svg"
+                            >
+                              <path
+                                d="M9 16.2L4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4L9 16.2z"
+                                fill="#ffffff"
+                              />
+                            </svg>
+                          )}
+                        </div>
+                        <div
+                          className={styles.cancelIcon}
+                          onClick={cancelInlineEdit}
+                          title="Cancel editing"
+                        >
+                          <svg
+                            width="18"
+                            height="18"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            xmlns="http://www.w3.org/2000/svg"
+                          >
+                            <path
+                              d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41z"
+                              fill="#ffffff"
+                            />
+                          </svg>
+                        </div>
+                      </div>
+                    </>
+                  )}
                 </div>
                 <div className={styles.metadataSection}>
                   <h3>Description</h3>
-                  <p>
-                    {selectedProject.description || "No description provided."}
-                  </p>
+                  {!isInlineEditing ? (
+                    <p>
+                      {selectedProject.description || (
+                        <em>No description provided.</em>
+                      )}
+                    </p>
+                  ) : (
+                    <textarea
+                      className={styles.descriptionTextarea}
+                      value={editFormData.description}
+                      onChange={(e) =>
+                        setEditFormData({
+                          ...editFormData,
+                          description: e.target.value,
+                        })
+                      }
+                      placeholder="Enter project description"
+                    />
+                  )}
                 </div>
                 <div className={styles.metadataSection}>
                   <h3>Details</h3>
@@ -367,60 +454,6 @@ const Project: React.FC = () => {
           </div>
         </div>
       </div>
-
-      {showEditModal && (
-        <div className={styles.modalOverlay}>
-          <div className={styles.formDialog}>
-            <h3>Edit Project</h3>
-            <form onSubmit={handleSaveEdit}>
-              <div className={styles.formGroup}>
-                <label htmlFor="editName">Project Name</label>
-                <input
-                  type="text"
-                  id="editName"
-                  value={editFormData.name}
-                  onChange={(e) =>
-                    setEditFormData({ ...editFormData, name: e.target.value })
-                  }
-                  placeholder="Enter project name"
-                  required
-                />
-              </div>
-              <div className={styles.formGroup}>
-                <label htmlFor="editDescription">Description (Optional)</label>
-                <textarea
-                  id="editDescription"
-                  value={editFormData.description}
-                  onChange={(e) =>
-                    setEditFormData({
-                      ...editFormData,
-                      description: e.target.value,
-                    })
-                  }
-                  placeholder="Enter project description"
-                />
-              </div>
-              <div className={styles.formActions}>
-                <button
-                  type="button"
-                  className={styles.cancelButton}
-                  onClick={cancelEdit}
-                  disabled={loading}
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  className={styles.submitButton}
-                  disabled={loading}
-                >
-                  {loading ? "Saving..." : "Save Changes"}
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
 
       {showDeleteConfirm && (
         <div className={styles.modalOverlay}>
