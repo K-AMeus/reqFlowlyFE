@@ -4,7 +4,13 @@ import { useAuth } from "../context/AuthContext";
 import { createAuthenticatedRequest } from "../helpers/apiUtils";
 import { useParams } from "react-router-dom";
 import { RequirementCreateRequestDto } from "../services/RequirementService";
-import { UploaderDeleteIcon, AddIcon } from "../helpers/icons";
+import {
+  UploaderDeleteIcon,
+  AddIcon,
+  UploaderEditIcon,
+  UploaderSaveIcon,
+  UploaderCancelIcon,
+} from "../helpers/icons";
 import pdfToText from "react-pdftotext";
 
 interface UseCaseResponse {
@@ -35,6 +41,9 @@ const UseCaseUploader: React.FC = () => {
   const [savingRequirement, setSavingRequirement] = useState(false);
   const [pdfText, setPdfText] = useState<string>("");
   const [extractingPdfText, setExtractingPdfText] = useState(false);
+  const [editingDomain, setEditingDomain] = useState<string | null>(null);
+  const [editingName, setEditingName] = useState("");
+  const [editingAttributes, setEditingAttributes] = useState("");
 
   const { currentUser } = useAuth();
   const { projectId } = useParams<{ projectId: string }>();
@@ -239,6 +248,53 @@ const UseCaseUploader: React.FC = () => {
       }));
       setNewDomainObject("");
     }
+  };
+
+  const handleEditDomain = (domain: string, attributes: string[]) => {
+    setEditingDomain(domain);
+    setEditingName(domain);
+    setEditingAttributes(attributes.join(", "));
+  };
+
+  const handleSaveEdit = () => {
+    if (!editingDomain || !editingName.trim()) return;
+
+    const updatedDomainObjects = { ...domainObjects };
+    delete updatedDomainObjects[editingDomain];
+
+    const attributes = editingAttributes
+      .split(",")
+      .map((attr) => attr.trim())
+      .filter((attr) => attr.length > 0);
+
+    const orderedDomainObjects: { [key: string]: string[] } = {};
+    const entries = Object.entries(domainObjects);
+
+    const editedIndex = entries.findIndex(
+      ([domain]) => domain === editingDomain
+    );
+
+    for (let i = 0; i < entries.length; i++) {
+      const [domain, attrs] = entries[i];
+
+      if (i === editedIndex) {
+        orderedDomainObjects[editingName.trim()] = attributes;
+      } else if (domain !== editingDomain) {
+        orderedDomainObjects[domain] = attrs;
+      }
+    }
+
+    setDomainObjects(orderedDomainObjects);
+
+    setEditingDomain(null);
+    setEditingName("");
+    setEditingAttributes("");
+  };
+
+  const handleCancelEdit = () => {
+    setEditingDomain(null);
+    setEditingName("");
+    setEditingAttributes("");
   };
 
   const hasResults =
@@ -458,24 +514,76 @@ const UseCaseUploader: React.FC = () => {
                           key={`domain-${index}`}
                           className={styles.domainRow}
                         >
-                          <td>{domain}</td>
-                          <td style={{ position: "relative" }}>
-                            {attributes.length > 0
-                              ? attributes.join(", ")
-                              : "No attributes"}
-                            <span
-                              style={{
-                                position: "absolute",
-                                right: "12px",
-                                top: "50%",
-                                transform: "translateY(-50%)",
-                              }}
-                            >
-                              <UploaderDeleteIcon
-                                onClick={() => toggleDomainObject(domain)}
-                              />
-                            </span>
-                          </td>
+                          {editingDomain === domain ? (
+                            <>
+                              <td>
+                                <input
+                                  type="text"
+                                  value={editingName}
+                                  onChange={(e) =>
+                                    setEditingName(e.target.value)
+                                  }
+                                  className={styles.editInput}
+                                />
+                              </td>
+                              <td>
+                                <input
+                                  type="text"
+                                  value={editingAttributes}
+                                  onChange={(e) =>
+                                    setEditingAttributes(e.target.value)
+                                  }
+                                  className={styles.editInput}
+                                  placeholder="Comma separated attributes"
+                                />
+                                <span
+                                  style={{
+                                    position: "absolute",
+                                    right: "12px",
+                                    top: "50%",
+                                    transform: "translateY(-50%)",
+                                    display: "flex",
+                                    gap: "8px",
+                                    zIndex: 1,
+                                  }}
+                                >
+                                  <UploaderSaveIcon onClick={handleSaveEdit} />
+                                  <UploaderCancelIcon
+                                    onClick={handleCancelEdit}
+                                  />
+                                </span>
+                              </td>
+                            </>
+                          ) : (
+                            <>
+                              <td>{domain}</td>
+                              <td>
+                                {attributes.length > 0
+                                  ? attributes.join(", ")
+                                  : "No attributes"}
+                                <span
+                                  style={{
+                                    position: "absolute",
+                                    right: "12px",
+                                    top: "50%",
+                                    transform: "translateY(-50%)",
+                                    display: "flex",
+                                    gap: "8px",
+                                    zIndex: 1,
+                                  }}
+                                >
+                                  <UploaderEditIcon
+                                    onClick={() =>
+                                      handleEditDomain(domain, attributes)
+                                    }
+                                  />
+                                  <UploaderDeleteIcon
+                                    onClick={() => toggleDomainObject(domain)}
+                                  />
+                                </span>
+                              </td>
+                            </>
+                          )}
                         </tr>
                       )
                     )}
@@ -502,7 +610,7 @@ const UseCaseUploader: React.FC = () => {
                           className={`${styles.domainRow} ${styles.suggestedRow}`}
                         >
                           <td>{domain}</td>
-                          <td style={{ position: "relative" }}>
+                          <td>
                             {attributes.length > 0
                               ? attributes.join(", ")
                               : "No attributes"}
@@ -512,6 +620,9 @@ const UseCaseUploader: React.FC = () => {
                                 right: "12px",
                                 top: "50%",
                                 transform: "translateY(-50%)",
+                                display: "flex",
+                                gap: "8px",
+                                zIndex: 1,
                               }}
                             >
                               <AddIcon
@@ -555,7 +666,7 @@ const UseCaseUploader: React.FC = () => {
                           className={`${styles.domainRow} ${styles.removedRow}`}
                         >
                           <td>{domain}</td>
-                          <td style={{ position: "relative" }}>
+                          <td>
                             {attributes.length > 0
                               ? attributes.join(", ")
                               : "No attributes"}
@@ -565,6 +676,9 @@ const UseCaseUploader: React.FC = () => {
                                 right: "12px",
                                 top: "50%",
                                 transform: "translateY(-50%)",
+                                display: "flex",
+                                gap: "8px",
+                                zIndex: 1,
                               }}
                             >
                               <AddIcon
