@@ -11,6 +11,7 @@ import Login from "./components/Login";
 import LandingPage from "./components/LandingPage";
 import ProjectList from "./components/ProjectList";
 import Project from "./components/Project";
+import ToastContainer from "./components/ToastContainer";
 import { AuthProvider, useAuth } from "./context/AuthContext";
 import ScrollToTop from "./hooks/ScrollToTop";
 
@@ -58,6 +59,30 @@ const AppRoutes = () => {
               </ProtectedRoute>
             }
           />
+          <Route
+            path="/projects/:projectId/domain-objects"
+            element={
+              <ProtectedRoute>
+                <Project initialView="domain-objects" />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/projects/:projectId/use-cases"
+            element={
+              <ProtectedRoute>
+                <Project initialView="use-cases" />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/projects/:projectId/test-cases"
+            element={
+              <ProtectedRoute>
+                <Project initialView="test-cases" />
+              </ProtectedRoute>
+            }
+          />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </main>
@@ -72,6 +97,7 @@ const App = () => {
       <Router>
         <ScrollToTop>
           <AppRoutes />
+          <ToastContainer />
         </ScrollToTop>
       </Router>
     </AuthProvider>

@@ -15,3 +15,39 @@ export const navigateToProject = (
 
   navigate(`/projects/${projectId}`);
 };
+
+export const navigateToDomainObjects = (
+  navigate: NavigateFunction,
+  projectId: string | undefined
+): void => {
+  if (!projectId) {
+    console.error("Project ID is undefined!");
+    return;
+  }
+
+  navigate(`/projects/${projectId}/domain-objects`);
+};
+
+export const navigateToUseCases = (
+  navigate: NavigateFunction,
+  projectId: string | undefined
+): void => {
+  if (!projectId) {
+    console.error("Project ID is undefined!");
+    return;
+  }
+
+  navigate(`/projects/${projectId}/use-cases`);
+};
+
+export const navigateToTestCases = (
+  navigate: NavigateFunction,
+  projectId: string | undefined
+): void => {
+  if (!projectId) {
+    console.error("Project ID is undefined!");
+    return;
+  }
+
+  navigate(`/projects/${projectId}/test-cases`);
+};

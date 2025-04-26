@@ -2,7 +2,7 @@ import React, { useState, ChangeEvent, useEffect } from "react";
 import styles from "../styles/UseCaseUploader.module.css";
 import { useAuth } from "../context/AuthContext";
 import { createAuthenticatedRequest } from "../helpers/apiUtils";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import { RequirementCreateRequestDto } from "../services/RequirementService";
 import {
   UploaderDeleteIcon,
@@ -12,10 +12,18 @@ import {
   UploaderCancelIcon,
 } from "../helpers/icons";
 import pdfToText from "react-pdftotext";
+import { navigateToUseCases } from "../helpers/navigationUtils";
+import { showGlobalToast } from "../helpers/toastUtils";
 
 interface UseCaseResponse {
   domainObjects: { [key: string]: string[] };
   suggestedDomainObjects: { [key: string]: string[] };
+}
+
+interface AttributeEdit {
+  value: string;
+  isNew?: boolean;
+  toDelete?: boolean;
 }
 
 const UseCaseUploader: React.FC = () => {
@@ -43,10 +51,14 @@ const UseCaseUploader: React.FC = () => {
   const [extractingPdfText, setExtractingPdfText] = useState(false);
   const [editingDomain, setEditingDomain] = useState<string | null>(null);
   const [editingName, setEditingName] = useState("");
-  const [editingAttributes, setEditingAttributes] = useState("");
+  const [editingAttributes, setEditingAttributes] = useState<AttributeEdit[]>(
+    []
+  );
+  const [savingDomainObjects, setSavingDomainObjects] = useState(false);
 
   const { currentUser } = useAuth();
   const { projectId } = useParams<{ projectId: string }>();
+  const navigate = useNavigate();
 
   useEffect(() => {
     if (
@@ -59,6 +71,10 @@ const UseCaseUploader: React.FC = () => {
       setResultsReady(false);
     }
   }, [loading, resultsReady, domainObjects, suggestedDomainObjects]);
+
+  const showNotification = (type: "success" | "error", message: string) => {
+    showGlobalToast(type, message);
+  };
 
   const handleTextSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -253,19 +269,29 @@ const UseCaseUploader: React.FC = () => {
   const handleEditDomain = (domain: string, attributes: string[]) => {
     setEditingDomain(domain);
     setEditingName(domain);
-    setEditingAttributes(attributes.join(", "));
+    setEditingAttributes(attributes.map((attr) => ({ value: attr })));
   };
 
   const handleSaveEdit = () => {
     if (!editingDomain || !editingName.trim()) return;
 
+    if (
+      editingName !== editingDomain &&
+      (editingName in domainObjects ||
+        editingName in suggestedDomainObjects ||
+        editingName in removedDomainObjects)
+    ) {
+      setError(`Domain object "${editingName}" already exists.`);
+      return;
+    }
+
     const updatedDomainObjects = { ...domainObjects };
     delete updatedDomainObjects[editingDomain];
 
-    const attributes = editingAttributes
-      .split(",")
-      .map((attr) => attr.trim())
-      .filter((attr) => attr.length > 0);
+    const validAttributes = editingAttributes
+      .filter((attr) => !attr.toDelete)
+      .filter((attr) => attr.value.trim() !== "")
+      .map((attr) => attr.value.trim());
 
     const orderedDomainObjects: { [key: string]: string[] } = {};
     const entries = Object.entries(domainObjects);
@@ -278,29 +304,121 @@ const UseCaseUploader: React.FC = () => {
       const [domain, attrs] = entries[i];
 
       if (i === editedIndex) {
-        orderedDomainObjects[editingName.trim()] = attributes;
+        orderedDomainObjects[editingName.trim()] = validAttributes;
       } else if (domain !== editingDomain) {
         orderedDomainObjects[domain] = attrs;
       }
     }
 
     setDomainObjects(orderedDomainObjects);
-
+    setError("");
     setEditingDomain(null);
     setEditingName("");
-    setEditingAttributes("");
+    setEditingAttributes([]);
   };
 
   const handleCancelEdit = () => {
     setEditingDomain(null);
     setEditingName("");
-    setEditingAttributes("");
+    setEditingAttributes([]);
+    setError("");
+  };
+
+  const handleAttributeChange = (index: number, value: string) => {
+    const newAttributes = [...editingAttributes];
+    newAttributes[index].value = value;
+    setEditingAttributes(newAttributes);
+  };
+
+  const handleAddAttribute = () => {
+    setEditingAttributes([...editingAttributes, { value: "", isNew: true }]);
+  };
+
+  const handleRemoveAttribute = (index: number) => {
+    const newAttributes = [...editingAttributes];
+    if (newAttributes[index].isNew) {
+      newAttributes.splice(index, 1);
+    } else {
+      newAttributes[index].toDelete = true;
+    }
+    setEditingAttributes(newAttributes);
+  };
+
+  const handleUndoRemoveAttribute = (index: number) => {
+    const newAttributes = [...editingAttributes];
+    newAttributes[index].toDelete = false;
+    setEditingAttributes(newAttributes);
+  };
+
+  const renderAttributeItem = (attr: AttributeEdit, attrIndex: number) => {
+    return (
+      <div
+        key={`attr-${attrIndex}`}
+        className={`${styles.attributeItem} ${
+          attr.toDelete ? styles.attributeDeleted : ""
+        }`}
+      >
+        <input
+          type="text"
+          value={attr.value}
+          onChange={(e) => handleAttributeChange(attrIndex, e.target.value)}
+          className={`${styles.editInput} ${styles.attributeInput}`}
+          placeholder="Attribute name"
+          disabled={attr.toDelete}
+        />
+        {attr.toDelete ? (
+          <span
+            className={styles.undoButton}
+            onClick={() => handleUndoRemoveAttribute(attrIndex)}
+          >
+            Undo
+          </span>
+        ) : (
+          <UploaderDeleteIcon
+            onClick={() => handleRemoveAttribute(attrIndex)}
+          />
+        )}
+      </div>
+    );
   };
 
   const hasResults =
     Object.keys(domainObjects).length > 0 ||
     Object.keys(suggestedDomainObjects).length > 0 ||
     Object.keys(removedDomainObjects).length > 0;
+
+  const handleFinalizeDomainObjects = async () => {
+    if (!projectId) {
+      setError("No project ID found. Cannot save domain objects.");
+      return;
+    }
+
+    if (Object.keys(domainObjects).length === 0) {
+      setError("No domain objects to save.");
+      return;
+    }
+
+    try {
+      setSavingDomainObjects(true);
+      setError("");
+
+      const api = await createAuthenticatedRequest(currentUser);
+
+      await api.domainObjectService.createDomainObjectsBatch(
+        projectId,
+        domainObjects
+      );
+
+      showNotification("success", "Domain objects successfully saved!");
+      navigateToUseCases(navigate, projectId);
+    } catch (err) {
+      console.error("Error saving domain objects:", err);
+      setError("Failed to save domain objects to the database.");
+      showNotification("error", "Failed to save domain objects.");
+    } finally {
+      setSavingDomainObjects(false);
+    }
+  };
 
   return (
     <div className={styles.containerWrapper}>
@@ -309,7 +427,7 @@ const UseCaseUploader: React.FC = () => {
         <div className={styles.diagonalLine}></div>
         <div className={styles.diagonalLine}></div>
         <div className={styles.diagonalLine}></div>
-        <h1 className={styles.title}>Domain object Generator</h1>
+        <h1 className={styles.title}>Domain Object Generator</h1>
 
         {hasResults && (
           <div className={styles.mainTabs}>
@@ -497,6 +615,8 @@ const UseCaseUploader: React.FC = () => {
 
         {activeView === "results" && (
           <div className={styles.resultsView}>
+            {error && <p className={styles.error}>{error}</p>}
+
             {Object.keys(domainObjects).length > 0 && (
               <div className={styles.results}>
                 <h2>Domain Objects:</h2>
@@ -527,31 +647,24 @@ const UseCaseUploader: React.FC = () => {
                                 />
                               </td>
                               <td>
-                                <input
-                                  type="text"
-                                  value={editingAttributes}
-                                  onChange={(e) =>
-                                    setEditingAttributes(e.target.value)
-                                  }
-                                  className={styles.editInput}
-                                  placeholder="Comma separated attributes"
-                                />
-                                <span
-                                  style={{
-                                    position: "absolute",
-                                    right: "12px",
-                                    top: "50%",
-                                    transform: "translateY(-50%)",
-                                    display: "flex",
-                                    gap: "8px",
-                                    zIndex: 1,
-                                  }}
-                                >
+                                <div className={styles.attributesList}>
+                                  {editingAttributes.map(renderAttributeItem)}
+                                  <button
+                                    type="button"
+                                    className={styles.addAttributeButton}
+                                    onClick={handleAddAttribute}
+                                  >
+                                    <span className={styles.addButtonText}>
+                                      + Add
+                                    </span>
+                                  </button>
+                                </div>
+                                <div className={styles.editActions}>
                                   <UploaderSaveIcon onClick={handleSaveEdit} />
                                   <UploaderCancelIcon
                                     onClick={handleCancelEdit}
                                   />
-                                </span>
+                                </div>
                               </td>
                             </>
                           ) : (
@@ -712,14 +825,18 @@ const UseCaseUploader: React.FC = () => {
 
             {(Object.keys(domainObjects).length > 0 ||
               Object.keys(removedDomainObjects).length > 0) && (
-              <button className={styles.finalizeButton} disabled={loading}>
-                {loading ? (
+              <button
+                className={styles.finalizeButton}
+                disabled={loading || savingDomainObjects}
+                onClick={handleFinalizeDomainObjects}
+              >
+                {savingDomainObjects ? (
                   <>
                     <span className={styles.loading}></span>
-                    Finalizing...
+                    Saving Domain Objects...
                   </>
                 ) : (
-                  "Finalize Domain Objects"
+                  "Save Domain Objects"
                 )}
               </button>
             )}

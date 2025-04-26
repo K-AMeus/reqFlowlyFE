@@ -1,0 +1,110 @@
+.toastContainer {
+  position: fixed;
+  z-index: 10000;
+  bottom: 24px;
+  right: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-width: 380px;
+  width: 100%;
+  pointer-events: none;
+}
+
+.toast {
+  pointer-events: auto;
+  position: relative;
+  overflow: hidden;
+  padding: 16px;
+  border-radius: 6px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  color: #fff;
+  animation: slideInRight 0.3s ease-out forwards;
+  opacity: 0;
+  transform: translateX(100%);
+  will-change: transform, opacity;
+}
+
+.toastContent {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.toastIcon {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  color: #fff;
+}
+
+.toastMessage {
+  flex: 1;
+  font-size: 14px;
+  line-height: 1.5;
+  overflow-wrap: break-word;
+  word-break: break-word;
+}
+
+.toastClose {
+  flex-shrink: 0;
+  background: transparent;
+  border: none;
+  padding: 4px;
+  color: rgba(255, 255, 255, 0.8);
+  cursor: pointer;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: color 0.2s, background-color 0.2s;
+}
+
+.toastClose:hover {
+  color: #fff;
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.toastProgress {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  height: 3px;
+  background-color: rgba(255, 255, 255, 0.4);
+  transition: width 0.1s linear;
+}
+
+.success {
+  background: linear-gradient(135deg, #2e7d32, #43a047);
+  border-left: 4px solid #1b5e20;
+}
+
+.error {
+  background: linear-gradient(135deg, #c62828, #d32f2f);
+  border-left: 4px solid #b71c1c;
+}
+
+.info {
+  background: linear-gradient(135deg, #1565c0, #1976d2);
+  border-left: 4px solid #0d47a1;
+}
+
+.warning {
+  background: linear-gradient(135deg, #f57c00, #ff8f00);
+  border-left: 4px solid #e65100;
+}
+
+@keyframes slideInRight {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}

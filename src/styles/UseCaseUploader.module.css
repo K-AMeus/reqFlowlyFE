@@ -58,6 +58,9 @@
   transform: rotate(45deg);
   box-shadow: 0 0 20px rgba(77, 137, 196, 0.3);
   pointer-events: none;
+  will-change: transform;
+  animation: none;
+  transition: none;
 }
 
 .diagonalLine:nth-child(1) {
@@ -964,4 +967,219 @@ tr.suggestedRow td {
 .cancelIcon:hover {
   color: #616161;
   background-color: rgba(117, 117, 117, 0.15);
+}
+
+.attributesList {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  max-width: 100%;
+  padding-right: 60px;
+}
+
+.attributeItem {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  position: relative;
+}
+
+.attributeInput {
+  flex: 1;
+  width: 100%;
+  min-width: 0;
+  padding: 6px 8px;
+  margin: 0;
+  font-size: 0.85rem;
+}
+
+.attributeDeleted {
+  opacity: 0.5;
+  text-decoration: line-through;
+}
+
+.undoButton {
+  cursor: pointer;
+  color: #4d89c4;
+  font-size: 11px;
+  text-decoration: underline;
+  white-space: nowrap;
+}
+
+.addAttributeButton {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  background: transparent;
+  border: 1px dashed rgba(30, 73, 118, 0.5);
+  border-radius: 4px;
+  padding: 3px 8px;
+  cursor: pointer;
+  color: #4d89c4;
+  transition: background-color 0.2s;
+  margin-top: 6px;
+  width: fit-content;
+  font-size: 0.85rem;
+}
+
+.addAttributeButton:hover {
+  background-color: rgba(30, 73, 118, 0.1);
+}
+
+.editActions {
+  display: flex;
+  gap: 8px;
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 1;
+}
+
+.addButtonText {
+  display: flex;
+  align-items: center;
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: #4d89c4;
+}
+
+.successMessage {
+  color: #4caf50;
+  text-align: center;
+  margin: 1rem auto;
+  padding: 1rem;
+  background-color: rgba(76, 175, 80, 0.1);
+  border-radius: 8px;
+  border-left: 4px solid #4caf50;
+  max-width: 80%;
+  font-weight: 500;
+  animation: fadeIn 0.3s ease-in-out;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+}
+
+.checkmarkIcon {
+  display: inline-flex;
+  width: 24px;
+  height: 24px;
+  background-color: #4caf50;
+  border-radius: 50%;
+  position: relative;
+}
+
+.checkmarkIcon::before {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 8px;
+  height: 14px;
+  border: solid white;
+  border-width: 0 3px 3px 0;
+  transform: translate(-50%, -60%) rotate(45deg);
+}
+
+/* Toast notifications */
+.toast {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  min-width: 300px;
+  max-width: 400px;
+  border-radius: 6px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  z-index: 9999;
+  opacity: 0;
+  transform: translateX(100%);
+  animation: slideInRight 0.3s forwards, fadeOut 0.3s forwards 4.7s;
+  overflow: hidden;
+}
+
+.toastContent {
+  display: flex;
+  align-items: center;
+  padding: 16px;
+  color: white;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.toastContent p {
+  margin: 0;
+  padding: 0;
+}
+
+.success {
+  background: linear-gradient(135deg, #2e7d32, #43a047);
+  border-left: 4px solid #1b5e20;
+}
+
+.error {
+  background: linear-gradient(135deg, #c62828, #d32f2f);
+  border-left: 4px solid #b71c1c;
+}
+
+.toastCheckmark {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background-color: #1b5e20;
+  position: relative;
+  margin-right: 12px;
+  flex-shrink: 0;
+}
+
+.toastCheckmark::before {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  height: 8px;
+  width: 4px;
+  border-right: 2px solid white;
+  border-bottom: 2px solid white;
+  transform: translate(-50%, -60%) rotate(45deg);
+}
+
+.toastErrorIcon {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background-color: #b71c1c;
+  position: relative;
+  margin-right: 12px;
+  flex-shrink: 0;
+}
+
+.toastErrorIcon::before,
+.toastErrorIcon::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 10px;
+  height: 2px;
+  background-color: white;
+}
+
+.toastErrorIcon::before {
+  transform: translate(-50%, -50%) rotate(45deg);
+}
+
+.toastErrorIcon::after {
+  transform: translate(-50%, -50%) rotate(-45deg);
+}
+
+@keyframes slideInRight {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
 }

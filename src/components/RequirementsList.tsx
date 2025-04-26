@@ -1,10 +1,13 @@
 import React, { useState, useEffect } from "react";
 import ReactDOM from "react-dom";
+import { useNavigate } from "react-router-dom";
 import styles from "../styles/Requirements.module.css";
 import { useAuth } from "../context/AuthContext";
 import { createAuthenticatedRequest } from "../helpers/apiUtils";
 import { RequirementDto } from "../services/RequirementService";
 import { formatDate, formatTimeAgo } from "../helpers/dateUtils";
+import { navigateToDomainObjects } from "../helpers/navigationUtils";
+import { showGlobalToast } from "../helpers/toastUtils";
 import {
   ChevronLeft,
   ChevronRight,
@@ -40,6 +43,7 @@ const RequirementsList: React.FC<RequirementsListProps> = ({ projectId }) => {
   const [isSaving, setIsSaving] = useState(false);
 
   const { currentUser } = useAuth();
+  const navigate = useNavigate();
 
   useEffect(() => {
     fetchRequirements();
@@ -101,6 +105,7 @@ const RequirementsList: React.FC<RequirementsListProps> = ({ projectId }) => {
   };
 
   const handleSaveDetailEdit = async (e: React.MouseEvent) => {
+    e.preventDefault();
     e.stopPropagation();
 
     if (!selectedRequirement || !selectedRequirement.id) {
@@ -113,10 +118,11 @@ const RequirementsList: React.FC<RequirementsListProps> = ({ projectId }) => {
     try {
       setIsSaving(true);
       setLoading(true);
+      setError(null);
       const api = await createAuthenticatedRequest(currentUser);
 
       const updateData = {
-        title: detailEditData.title,
+        title: detailEditData.title.trim(),
         description: detailEditData.description,
         sourceType: selectedRequirement.sourceType,
         sourceContent: detailEditData.sourceContent,
@@ -150,10 +156,9 @@ const RequirementsList: React.FC<RequirementsListProps> = ({ projectId }) => {
           )
         );
       } else {
-        // Update locally if we can't fetch from server
         const updatedRequirement = {
           ...selectedRequirement,
-          title: detailEditData.title,
+          title: detailEditData.title.trim(),
           description: detailEditData.description,
           sourceContent: detailEditData.sourceContent,
         };
@@ -163,6 +168,13 @@ const RequirementsList: React.FC<RequirementsListProps> = ({ projectId }) => {
           requirements.map((req) =>
             req.id === selectedRequirement.id ? updatedRequirement : req
           )
+        );
+      }
+
+      if (selectedRequirement.sourceContent !== detailEditData.sourceContent) {
+        showGlobalToast(
+          "warning",
+          "Requirement content changed. You may want to recreate domain objects."
         );
       }
     } catch (err) {
@@ -229,6 +241,10 @@ const RequirementsList: React.FC<RequirementsListProps> = ({ projectId }) => {
     if (!isSaving) {
       cancelDetailEdit(e);
     }
+  };
+
+  const goToDomainObjects = () => {
+    navigateToDomainObjects(navigate, projectId);
   };
 
   const renderPagination = () => {
@@ -361,6 +377,10 @@ const RequirementsList: React.FC<RequirementsListProps> = ({ projectId }) => {
             )}
           </div>
         </div>
+
+        {error && isEditingDetail && (
+          <div className={styles.errorMessage}>{error}</div>
+        )}
 
         <div className={styles.requirementHeader}>
           {!isEditingDetail ? (
@@ -503,7 +523,16 @@ const RequirementsList: React.FC<RequirementsListProps> = ({ projectId }) => {
       return (
         <div className={styles.emptyState}>
           <p>No requirements found for this project.</p>
-          <p>Go to the Domain Objects page to add requirements.</p>
+          <p>
+            Go to the{" "}
+            <button
+              onClick={goToDomainObjects}
+              className={styles.domainObjectsButton}
+            >
+              Domain Objects
+            </button>{" "}
+            page to add requirements.
+          </p>
         </div>
       );
     }

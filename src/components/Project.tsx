@@ -10,6 +10,8 @@ import { EditIcon, DeleteIcon, BackIcon } from "../helpers/icons";
 import { formatDate, formatTimeAgo } from "../helpers/dateUtils";
 import { navigateTo } from "../helpers/navigationUtils";
 import { createAuthenticatedRequest } from "../helpers/apiUtils";
+import axios from "axios";
+import { showGlobalToast } from "../helpers/toastUtils";
 
 interface Project {
   id: string;
@@ -19,7 +21,13 @@ interface Project {
   updatedAt?: string;
 }
 
-const Project: React.FC = () => {
+interface ProjectComponentProps {
+  initialView?: string;
+}
+
+const Project: React.FC<ProjectComponentProps> = ({
+  initialView = "metadata",
+}) => {
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -28,7 +36,7 @@ const Project: React.FC = () => {
     name: "",
     description: "",
   });
-  const [activePage, setActivePage] = useState("metadata");
+  const [activePage, setActivePage] = useState(initialView);
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [isInlineEditing, setIsInlineEditing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
@@ -42,6 +50,10 @@ const Project: React.FC = () => {
       fetchProjectById(projectId);
     }
   }, [projectId]);
+
+  useEffect(() => {
+    setActivePage(initialView);
+  }, [initialView]);
 
   const fetchProjectById = async (id: string) => {
     try {
@@ -108,7 +120,7 @@ const Project: React.FC = () => {
   const handleConfirmDelete = async () => {
     if (!selectedProject || !selectedProject.id) {
       console.error("Cannot delete: project ID is missing");
-      setError("Failed to delete project: Missing project ID");
+      showGlobalToast("error", "Failed to delete project: Missing project ID");
       setShowDeleteConfirm(false);
       return;
     }
@@ -120,9 +132,19 @@ const Project: React.FC = () => {
 
       setShowDeleteConfirm(false);
       navigateTo(navigate, "/projects");
-    } catch (err) {
-      console.error("Failed to delete project:", err);
-      setError("Failed to delete project");
+    } catch (error) {
+      console.error("Failed to delete project:", error);
+      if (axios.isAxiosError(error)) {
+        const errorMessage =
+          error.response?.status === 403
+            ? "ERROR: The project may have dependencies that need to be deleted first"
+            : "ERROR: Failed to delete project";
+
+        showGlobalToast("error", errorMessage, 7000);
+      } else {
+        showGlobalToast("error", "Failed to delete project", 7000);
+      }
+      setShowDeleteConfirm(false);
     } finally {
       setLoading(false);
     }
@@ -153,6 +175,14 @@ const Project: React.FC = () => {
 
   const handlePageChange = (page: string) => {
     setActivePage(page);
+
+    if (projectId) {
+      if (page === "metadata") {
+        navigate(`/projects/${projectId}`);
+      } else {
+        navigate(`/projects/${projectId}/${page}`);
+      }
+    }
 
     window.scrollTo({
       top: 0,

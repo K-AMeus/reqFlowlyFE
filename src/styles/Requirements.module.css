@@ -238,6 +238,32 @@
   margin: 0.5rem 0;
 }
 
+.domainObjectsButton {
+  background-color: #1e4976;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  padding: 0.4rem 0.8rem;
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-decoration: none;
+  display: inline-block;
+  margin: 0 0.3rem;
+}
+
+.domainObjectsButton:hover {
+  background-color: #2c5d8f;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.domainObjectsButton:active {
+  transform: translateY(0);
+  box-shadow: none;
+}
+
 .requirementDetail {
   background-color: white;
   border-radius: 6px;
@@ -440,6 +466,11 @@
 .notificationSuccess {
   background: linear-gradient(135deg, #1e4976, #2c5d8f);
   border-left: 4px solid #4d89c4;
+}
+
+.notificationWarning {
+  background: linear-gradient(135deg, #ffa000, #ff6f00);
+  border-left: 4px solid #ffb74d;
 }
 
 .notificationError {
@@ -854,4 +885,14 @@
 .descriptionTextarea:focus {
   border-color: #1e4976;
   box-shadow: 0 0 0 2px rgba(30, 73, 118, 0.1);
+}
+
+.errorMessage {
+  color: #e53935;
+  background-color: rgba(229, 57, 53, 0.1);
+  padding: 0.75rem;
+  border-radius: 4px;
+  border-left: 4px solid #e53935;
+  margin-bottom: 1rem;
+  font-size: 0.9rem;
 }

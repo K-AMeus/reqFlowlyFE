@@ -2,6 +2,8 @@ import { User } from "firebase/auth";
 import axios from "axios";
 import { RequirementService } from "../services/RequirementService";
 import { ProjectService } from "../services/ProjectService";
+import { DomainObjectService } from "../services/DomainObjectService";
+import { DomainObjectAttributeService } from "../services/DomainObjectAttributeService";
 import { ExtendedAxiosInstance } from "../types/api";
 
 export const getAuthHeader = async (currentUser: User | null) => {
@@ -31,9 +33,13 @@ export const createAuthenticatedRequest = async (
 
   const projectService = new ProjectService(api);
   const requirementService = new RequirementService(api);
+  const domainObjectService = new DomainObjectService(api);
+  const domainObjectAttributeService = new DomainObjectAttributeService(api);
 
   api.projectService = projectService;
   api.requirementService = requirementService;
+  api.domainObjectService = domainObjectService;
+  api.domainObjectAttributeService = domainObjectAttributeService;
 
   return api;
 };
