@@ -17,6 +17,9 @@
   margin-bottom: 1.5rem;
   padding-bottom: 0.75rem;
   border-bottom: 1px solid rgba(30, 73, 118, 0.1);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
 
 .requirementsList {
@@ -33,13 +36,13 @@
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
   border: 1px solid rgba(30, 73, 118, 0.1);
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: background-color 0.2s ease, box-shadow 0.2s ease,
+    border-color 0.2s ease;
   display: flex;
   flex-direction: column;
 }
 
 .requirementCard:hover {
-  transform: translateY(-3px);
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
   border-color: rgba(30, 73, 118, 0.3);
 }
@@ -232,10 +235,22 @@
   text-align: center;
   padding: 3rem 2rem;
   color: #546e7a;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 250px;
 }
 
 .emptyState p {
   margin: 0.5rem 0;
+}
+
+.emptyState .addRequirementButton {
+  margin-top: 1.5rem;
+  padding: 0.8rem 1.5rem;
+  font-size: 1rem;
+  min-width: 200px;
 }
 
 .domainObjectsButton {
@@ -502,29 +517,32 @@
   position: fixed;
   top: 0;
   left: 0;
-  right: 0;
-  bottom: 0;
-  background-color: rgba(0, 0, 0, 0.5);
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.6);
   display: flex;
-  justify-content: center;
   align-items: center;
+  justify-content: center;
   z-index: 1000;
-  backdrop-filter: blur(4px);
-  -webkit-backdrop-filter: blur(4px);
-  animation: fadeIn 0.2s ease;
+  backdrop-filter: blur(3px);
+  animation: fadeIn 0.3s ease-out;
 }
 
 .formDialog {
   background-color: #0a1929;
+  border-radius: 10px;
+  padding: 2rem 2.5rem;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
   width: 90%;
-  max-width: 450px;
-  border-radius: 8px;
-  padding: 1.5rem;
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
-  border: 1px solid #1e3a5f;
-  animation: slideUp 0.3s ease;
+  max-width: 700px;
   position: relative;
   overflow: hidden;
+  border: 1px solid #1e3a5f;
+  animation: slideUp 0.4s ease-out;
+  display: flex;
+  flex-direction: column;
+  max-height: 90vh;
+  overflow-y: auto;
 }
 
 .formDialog::before {
@@ -571,6 +589,9 @@
   outline: none;
   font-size: 1rem;
   margin-bottom: 4px;
+  resize: none;
+  overflow: hidden;
+  line-height: 1.4;
 }
 
 .formGroup input:focus,
@@ -583,7 +604,8 @@
   display: flex;
   justify-content: flex-end;
   gap: 1rem;
-  margin-top: 2rem;
+  margin-top: auto;
+  padding-top: 1.5rem;
 }
 
 .cancelButton {
@@ -624,6 +646,24 @@
 .submitButton:disabled {
   opacity: 0.7;
   cursor: not-allowed;
+}
+
+.buttonSpinner {
+  width: 1.2em;
+  height: 1.2em;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-radius: 50%;
+  border-top-color: #ffffff;
+  animation: spin 0.8s linear infinite;
+  display: inline-block;
+  vertical-align: middle;
+  margin: 0;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 .confirmDialog {
@@ -687,6 +727,14 @@
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
 }
 
+.deleteButton:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+  background: linear-gradient(135deg, #e53935, #ff5252);
+  transform: translateY(0);
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+}
+
 @keyframes fadeIn {
   from {
     opacity: 0;
@@ -745,7 +793,7 @@
   width: auto;
   height: auto;
   border-radius: 6px;
-  background-color: #4caf50; /* Green color for save */
+  background-color: #4caf50;
   cursor: pointer;
   transition: all 0.2s ease;
   box-shadow: 0 2px 6px rgba(76, 175, 80, 0.3);
@@ -895,4 +943,327 @@
   border-left: 4px solid #e53935;
   margin-bottom: 1rem;
   font-size: 0.9rem;
+}
+
+.requirementTypeSelector {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+  background-color: rgba(0, 0, 0, 0.1);
+  border-radius: 8px;
+  padding: 0.75rem;
+}
+
+.typeOption {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.25rem;
+  border-radius: 6px;
+  border: none;
+  cursor: pointer;
+  font-size: 0.95rem;
+  font-weight: 500;
+  background-color: rgba(0, 0, 0, 0.2);
+  color: #ffffff;
+  transition: all 0.2s ease;
+  flex: 1;
+  justify-content: center;
+}
+
+.typeOption svg {
+  width: 16px;
+  height: 16px;
+}
+
+.typeOption:hover {
+  background-color: rgba(0, 0, 0, 0.3);
+}
+
+.activeType {
+  background-color: #1e4976;
+  color: white;
+  box-shadow: 0 2px 6px rgba(30, 73, 118, 0.3);
+}
+
+.activeType:hover {
+  background-color: #2c5d8f;
+}
+
+.fileUploadContainer {
+  position: relative;
+  width: 100%;
+  margin-bottom: 0.5rem;
+}
+
+.fileInput {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  cursor: pointer;
+  z-index: 2;
+}
+
+.fileUploadBox {
+  width: 100%;
+  min-height: 100px;
+  border: 2px dashed rgba(255, 255, 255, 0.3);
+  border-radius: 6px;
+  padding: 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: rgba(0, 0, 0, 0.1);
+  transition: all 0.2s ease;
+}
+
+.fileUploadBox:hover {
+  border-color: #4d89c4;
+  background-color: rgba(0, 0, 0, 0.2);
+}
+
+.fileUploadBoxDisabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  pointer-events: none;
+  border-color: rgba(255, 255, 255, 0.3);
+  background-color: rgba(0, 0, 0, 0.1);
+}
+
+.fileUploadPrompt {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  color: rgba(255, 255, 255, 0.8);
+  text-align: center;
+}
+
+.fileLimit {
+  font-size: 0.8rem;
+  opacity: 0.7;
+}
+
+.selectedFile {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  color: white;
+}
+
+.selectedFile svg {
+  width: 24px;
+  height: 24px;
+}
+
+.fileError {
+  color: #ff5252;
+  font-size: 0.85rem;
+  margin-top: 0.5rem;
+}
+
+.contentInput {
+  min-height: 200px;
+  height: 250px;
+  resize: vertical;
+  overflow: auto;
+  font-family: inherit;
+  line-height: 1.5;
+}
+
+.addRequirementButton {
+  background-color: #1e4976;
+  color: white;
+  border: none;
+  padding: calc(0.6rem + 1px) 1.2rem;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.95rem;
+  transition: all 0.2s ease;
+  font-weight: 500;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  box-sizing: border-box;
+}
+
+.addRequirementButton:hover {
+  background-color: #2c5d8f;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.headerButtons {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.selectCancelButton {
+  background-color: #f0f2f5;
+  color: #1e4976;
+  border: 1px solid rgba(30, 73, 118, 0.25);
+  padding: 0.6rem 1.2rem;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.95rem;
+  transition: all 0.2s ease;
+  font-weight: 500;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  display: flex;
+  align-items: center;
+  box-sizing: border-box;
+}
+
+.selectCancelButton:hover {
+  background-color: #e3e7ec;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.08);
+}
+
+.selectedRequirementCard {
+  border: 1px solid #1e4976 !important;
+  background-color: rgba(30, 73, 118, 0.08);
+  box-shadow: 0 3px 10px rgba(30, 73, 118, 0.25) !important;
+  position: relative;
+}
+
+.selectedRequirementCard::after {
+  display: none;
+}
+
+.requirementsContainer[data-select-mode="true"] {
+  position: relative;
+}
+
+.requirementsContainer[data-select-mode="true"] .requirementsList {
+  position: relative;
+  padding-top: 35px;
+}
+
+.requirementsContainer[data-select-mode="true"] .requirementsList::before {
+  display: none;
+}
+
+.requirementsContainer[data-select-mode="true"][data-requirement-selected="false"]
+  .requirementsList::before {
+  display: block;
+  content: "Click on a requirement card below to select it for domain object creation.";
+  position: absolute;
+  top: -30px;
+  left: 0;
+  background: #edf2f7;
+  color: #1a3b5f;
+  padding: 10px 15px 10px 39px;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  border: 1px solid rgba(30, 73, 118, 0.15);
+  width: 100%;
+  box-sizing: border-box;
+  margin-bottom: 15px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  font-weight: 500;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 24 24' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Ccircle cx='12' cy='12' r='10' stroke='%231a3b5f' stroke-width='1.5'/%3E%3Cpath d='M12 17V11' stroke='%231a3b5f' stroke-width='1.5' stroke-linecap='round'/%3E%3Ccircle cx='1' cy='1' r='1' transform='matrix(1 0 0 -1 11 9)' fill='%231a3b5f'/%3E%3C/svg%3E"); /* User-provided Info Icon */
+  background-repeat: no-repeat;
+  background-position: 15px center;
+  background-size: 16px 16px;
+}
+
+.requirementsContainer[data-select-mode="true"][data-requirement-selected="true"]
+  .requirementsList::before {
+  display: block;
+  content: "Requirement selected. Click the 'Create' button above to proceed with domain object generation.";
+  position: absolute;
+  top: -30px;
+  left: 0;
+  background: #e2e8f0;
+  color: #1a3b5f;
+  padding: 10px 15px 10px 39px;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  border: 1px solid rgba(30, 73, 118, 0.2);
+  width: 100%;
+  box-sizing: border-box;
+  margin-bottom: 15px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.06);
+  font-weight: 500;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 24 24' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Ccircle cx='12' cy='12' r='10' stroke='%231a3b5f' stroke-width='1.5'/%3E%3Cpath d='M12 17V11' stroke='%231a3b5f' stroke-width='1.5' stroke-linecap='round'/%3E%3Ccircle cx='1' cy='1' r='1' transform='matrix(1 0 0 -1 11 9)' fill='%231a3b5f'/%3E%3C/svg%3E"); /* User-provided Info Icon */
+  background-repeat: no-repeat;
+  background-position: 15px center;
+  background-size: 16px 16px;
+}
+
+.requirementCard[data-selectable="true"] {
+  cursor: pointer;
+  position: relative;
+  border: 1px dashed rgba(30, 73, 118, 0.3);
+  transition: all 0.2s ease;
+}
+
+.requirementCard[data-selectable="true"]::before {
+  display: none;
+}
+
+.requirementCard[data-selectable="true"]:hover {
+  border: 1px dashed #1e4976;
+  background-color: rgba(30, 73, 118, 0.05);
+  box-shadow: 0 4px 12px rgba(30, 73, 118, 0.15);
+}
+
+.selectedRequirementCard:hover {
+  transform: none !important;
+}
+
+.requirementCard[data-selectable="true"]:hover::before {
+  display: none;
+}
+
+.selectedRequirementCard::before {
+  display: none;
+}
+
+.createDomainButton {
+  background-color: #1e4976;
+  color: white;
+  border: none;
+  padding: calc(0.6rem + 1px) 1.2rem;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.95rem;
+  transition: all 0.2s ease;
+  font-weight: 500;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  display: flex;
+  align-items: center;
+  box-sizing: border-box;
+}
+
+.createDomainButton:hover {
+  background-color: #2c5d8f;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.addRequirementButton:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+.addRequirementButton:disabled:hover {
+  background-color: #1e4976;
+  transform: none;
+  box-shadow: none;
+}
+
+.requirementCard,
+.requirementCard:hover,
+.requirementCard:active,
+.requirementCard[data-selectable="true"],
+.requirementCard[data-selectable="true"]:hover,
+.requirementCard[data-selectable="true"]:active,
+.selectedRequirementCard,
+.selectedRequirementCard:hover,
+.selectedRequirementCard:active {
+  transform: none !important;
 }

@@ -8,6 +8,21 @@ export interface RequirementCreateRequestDto {
   sourceFileUrl?: string;
 }
 
+export interface TextRequirementCreateDto {
+  title: string;
+  description?: string;
+  sourceType: "TEXT";
+  sourceContent?: string;
+}
+
+export interface PdfRequirementMetadataDto {
+  title: string;
+  description?: string;
+  sourceType: "PDF";
+  sourceContent?: string;
+  sourceFileUrl?: string;
+}
+
 export interface RequirementCreateResponseDto {
   id: string;
   projectId: string;
@@ -43,13 +58,38 @@ export class RequirementService {
     this.api = api;
   }
 
-  async createRequirement(
+
+  async createTextRequirement(
     projectId: string,
-    reqData: RequirementCreateRequestDto
+    reqData: TextRequirementCreateDto
   ): Promise<RequirementCreateResponseDto> {
     const response = await this.api.post(
-      `${this.BASE_URL}/${projectId}/requirements`,
+      `${this.BASE_URL}/${projectId}/requirements/text`,
       reqData
+    );
+    return response.data;
+  }
+
+  async createPdfRequirement(
+    projectId: string,
+    metadata: PdfRequirementMetadataDto,
+    file: File
+  ): Promise<RequirementCreateResponseDto> {
+    const formData = new FormData();
+    formData.append("file", file);
+    formData.append(
+      "metadata",
+      new Blob([JSON.stringify(metadata)], { type: "application/json" })
+    );
+
+    const response = await this.api.post(
+      `${this.BASE_URL}/${projectId}/requirements/pdf`,
+      formData,
+      {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      }
     );
     return response.data;
   }

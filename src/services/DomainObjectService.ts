@@ -13,7 +13,10 @@ export interface DomainObjectCreateResponseDto {
 }
 
 export interface DomainObjectsCreateRequestDto {
-  domainObjectsWithAttributes: Record<string, DomainObjectAttributeCreateRequestDto[]>;
+  domainObjectsWithAttributes: Record<
+    string,
+    DomainObjectAttributeCreateRequestDto[]
+  >;
 }
 
 export interface DomainObjectsCreateResponseDto {
@@ -40,6 +43,19 @@ export interface DomainObjectAttributeCreateResponseDto {
   dataType: string;
   createdAt?: string;
   updatedAt?: string;
+}
+
+export interface DomainObjectAttributeDto {
+  id: string;
+  domainObjectId: string;
+  name: string;
+  dataType: string;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export interface DomainObjectsWithAttributesResponseDto {
+  domainObjectsWithAttributes: Record<string, DomainObjectAttributeDto[]>;
 }
 
 export interface DomainObjectDto {
@@ -79,23 +95,26 @@ export class DomainObjectService {
 
   async createDomainObjectsBatch(
     projectId: string,
+    requirementId: string,
     domainObjectsWithAttributes: Record<string, string[]>
   ): Promise<DomainObjectsCreateResponseDto> {
     const payload: DomainObjectsCreateRequestDto = {
-      domainObjectsWithAttributes: {}
+      domainObjectsWithAttributes: {},
     };
 
-    for (const [domainName, attributes] of Object.entries(domainObjectsWithAttributes)) {
-      const attributeDtos = attributes.map(attrName => ({
+    for (const [domainName, attributes] of Object.entries(
+      domainObjectsWithAttributes
+    )) {
+      const attributeDtos = attributes.map((attrName) => ({
         name: attrName,
-        dataType: "string"
+        dataType: "string",
       }));
 
       payload.domainObjectsWithAttributes[domainName] = attributeDtos;
     }
 
     const response = await this.api.post(
-      `${this.BASE_URL}/${projectId}/domain-objects`,
+      `${this.BASE_URL}/${projectId}/requirements/${requirementId}/domain-objects`,
       payload
     );
     return response.data;
@@ -128,13 +147,23 @@ export class DomainObjectService {
     return response.data;
   }
 
+  async getAllDomainObjectsWithAttributes(
+    projectId: string
+  ): Promise<DomainObjectsWithAttributesResponseDto> {
+    const response = await this.api.get(
+      `${this.BASE_URL}/${projectId}/domain-objects`
+    );
+    return response.data;
+  }
+
   async updateDomainObject(
     projectId: string,
+    requirementId: string,
     domainObjectId: string,
     domainObjectData: DomainObjectCreateRequestDto
   ): Promise<DomainObjectCreateResponseDto> {
     const response = await this.api.put(
-      `${this.BASE_URL}/${projectId}/domain-objects/${domainObjectId}`,
+      `${this.BASE_URL}/${projectId}/requirements/${requirementId}/domain-objects/${domainObjectId}`,
       domainObjectData
     );
     return response.data;
@@ -142,10 +171,11 @@ export class DomainObjectService {
 
   async deleteDomainObject(
     projectId: string,
+    requirementId: string,
     domainObjectId: string
   ): Promise<void> {
     await this.api.delete(
-      `${this.BASE_URL}/${projectId}/domain-objects/${domainObjectId}`
+      `${this.BASE_URL}/${projectId}/requirements/${requirementId}/domain-objects/${domainObjectId}`
     );
   }
 }

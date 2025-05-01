@@ -4,9 +4,10 @@ import sidebarStyles from "../styles/ProjectSidebar.module.css";
 import UseCaseUploader from "./UseCaseUploader";
 import ProjectSidebar from "./ProjectSidebar";
 import RequirementsList from "./RequirementsList";
+import ProjectProgressBar from "./ProjectProgressBar";
 import { useAuth } from "../context/AuthContext";
 import { useParams, useNavigate } from "react-router-dom";
-import { EditIcon, DeleteIcon, BackIcon } from "../helpers/icons";
+import { EditIcon, DeleteIcon } from "../helpers/icons";
 import { formatDate, formatTimeAgo } from "../helpers/dateUtils";
 import { navigateTo } from "../helpers/navigationUtils";
 import { createAuthenticatedRequest } from "../helpers/apiUtils";
@@ -191,52 +192,14 @@ const Project: React.FC<ProjectComponentProps> = ({
     });
   };
 
-  const renderPageNavigation = () => {
-    const pages = [
-      { id: "metadata", label: "Project Metadata" },
-      { id: "domain-objects", label: "Domain Objects" },
-      { id: "use-cases", label: "Use Cases" },
-      { id: "test-cases", label: "Test Cases" },
-    ];
-
-    const currentIndex = pages.findIndex((page) => page.id === activePage);
-    const prevPage = currentIndex > 0 ? pages[currentIndex - 1] : null;
-    const nextPage =
-      currentIndex < pages.length - 1 ? pages[currentIndex + 1] : null;
-
-    return (
-      <div className={styles.pagination}>
-        <div className={styles.paginationControls}>
-          <button
-            className={styles.pageNavButton}
-            onClick={() => handlePageChange(prevPage?.id || "")}
-            disabled={!prevPage}
-          >
-            &lt;
-          </button>
-
-          {pages.map((page) => (
-            <button
-              key={page.id}
-              className={`${styles.pageButton} ${
-                activePage === page.id ? styles.activePage : ""
-              }`}
-              onClick={() => handlePageChange(page.id)}
-            >
-              {pages.indexOf(page) + 1}
-            </button>
-          ))}
-
-          <button
-            className={styles.pageNavButton}
-            onClick={() => handlePageChange(nextPage?.id || "")}
-            disabled={!nextPage}
-          >
-            &gt;
-          </button>
-        </div>
-      </div>
-    );
+  const getStepNumber = (page: string): number => {
+    const stepMap: Record<string, number> = {
+      metadata: 1,
+      "domain-objects": 2,
+      "use-cases": 3,
+      "test-cases": 4,
+    };
+    return stepMap[page] || 1;
   };
 
   const renderPageContent = () => {
@@ -253,16 +216,6 @@ const Project: React.FC<ProjectComponentProps> = ({
       case "metadata":
         return (
           <div className={styles.metadataContent}>
-            <div className={styles.pageHeader}>
-              <h2 className={styles.pageTitle}>Project Metadata</h2>
-              <button
-                className={styles.backButton}
-                onClick={handleBackToProjects}
-              >
-                <BackIcon /> Back to Projects
-              </button>
-            </div>
-
             <div className={styles.unifiedContentContainer}>
               <div className={styles.metadataCard}>
                 <div className={styles.metadataHeader}>
@@ -391,16 +344,6 @@ const Project: React.FC<ProjectComponentProps> = ({
       case "domain-objects":
         return (
           <div className={styles.domainObjectsContent}>
-            <div className={styles.pageHeader}>
-              <h2 className={styles.pageTitle}>Domain Objects</h2>
-              <button
-                className={styles.backButton}
-                onClick={handleBackToProjects}
-              >
-                <BackIcon /> Back to Projects
-              </button>
-            </div>
-
             <div className={styles.domainObjectWrapper}>
               <UseCaseUploader />
             </div>
@@ -409,16 +352,6 @@ const Project: React.FC<ProjectComponentProps> = ({
       case "use-cases":
         return (
           <div className={styles.useCasesContent}>
-            <div className={styles.pageHeader}>
-              <h2 className={styles.pageTitle}>Use Cases</h2>
-              <button
-                className={styles.backButton}
-                onClick={handleBackToProjects}
-              >
-                <BackIcon /> Back to Projects
-              </button>
-            </div>
-
             <div className={styles.comingSoon}>
               <div className={styles.comingSoonIcon}>🚧</div>
               <h3>Coming Soon</h3>
@@ -429,16 +362,6 @@ const Project: React.FC<ProjectComponentProps> = ({
       case "test-cases":
         return (
           <div className={styles.testCasesContent}>
-            <div className={styles.pageHeader}>
-              <h2 className={styles.pageTitle}>Test Cases</h2>
-              <button
-                className={styles.backButton}
-                onClick={handleBackToProjects}
-              >
-                <BackIcon /> Back to Projects
-              </button>
-            </div>
-
             <div className={styles.comingSoon}>
               <div className={styles.comingSoonIcon}>🚧</div>
               <h3>Coming Soon</h3>
@@ -476,12 +399,11 @@ const Project: React.FC<ProjectComponentProps> = ({
           !sidebarOpen ? sidebarStyles.mainContentFull : ""
         }`}
       >
+        <ProjectProgressBar currentStep={getStepNumber(activePage)} />
+
         <div className={styles.projectDetail}>
           {error && <div className={styles.error}>{error}</div>}
           <div className={styles.pageContentWrapper}>{renderPageContent()}</div>
-          <div className={styles.paginationWrapper}>
-            {renderPageNavigation()}
-          </div>
         </div>
       </div>
 

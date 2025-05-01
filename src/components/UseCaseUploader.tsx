@@ -55,6 +55,7 @@ const UseCaseUploader: React.FC = () => {
     []
   );
   const [savingDomainObjects, setSavingDomainObjects] = useState(false);
+  const [requirementId, setRequirementId] = useState("");
 
   const { currentUser } = useAuth();
   const { projectId } = useParams<{ projectId: string }>();
@@ -106,10 +107,13 @@ const UseCaseUploader: React.FC = () => {
             sourceContent: description,
           };
 
-          await api.requirementService.createRequirement(
-            projectId,
-            requirementData
-          );
+          const requirementResponse =
+            await api.requirementService.createRequirement(
+              projectId,
+              requirementData
+            );
+
+          setRequirementId(requirementResponse.id);
         } catch (err) {
           console.error("Error saving requirement:", err);
         } finally {
@@ -201,10 +205,13 @@ const UseCaseUploader: React.FC = () => {
             sourceContent: pdfContent,
           };
 
-          await api.requirementService.createRequirement(
-            projectId,
-            requirementData
-          );
+          const requirementResponse =
+            await api.requirementService.createRequirement(
+              projectId,
+              requirementData
+            );
+
+          setRequirementId(requirementResponse.id);
         } catch (err) {
           console.error("Error saving requirement:", err);
         } finally {
@@ -389,12 +396,12 @@ const UseCaseUploader: React.FC = () => {
 
   const handleFinalizeDomainObjects = async () => {
     if (!projectId) {
-      setError("No project ID found. Cannot save domain objects.");
+      setError("Project ID is missing.");
       return;
     }
 
-    if (Object.keys(domainObjects).length === 0) {
-      setError("No domain objects to save.");
+    if (!requirementId) {
+      setError("Requirement ID is missing. Please try again.");
       return;
     }
 
@@ -406,6 +413,7 @@ const UseCaseUploader: React.FC = () => {
 
       await api.domainObjectService.createDomainObjectsBatch(
         projectId,
+        requirementId,
         domainObjects
       );
 

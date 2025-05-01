@@ -1,0 +1,139 @@
+.progressBarContainer {
+  width: 100%;
+  margin: 0 auto 1rem;
+  padding: 0.75rem 0;
+  position: relative;
+  z-index: 2;
+}
+
+.progressBar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  position: relative;
+  max-width: 960px;
+  margin: 0 auto;
+}
+
+.step {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+  z-index: 1;
+  transition: all 0.3s ease;
+  padding: 0 1rem;
+}
+
+.stepCircle {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background-color: rgb(250, 250, 250);
+  border: 2px solid #607d9c;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 10px;
+  color: black;
+  font-weight: 600;
+  font-size: 0.95rem;
+  transition: all 0.3s ease;
+  position: relative;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.12);
+}
+
+.stepLabel {
+  font-size: 0.9rem;
+  color: rgb(26, 24, 24);
+  font-weight: 600;
+  text-align: center;
+  transition: all 0.3s ease;
+  max-width: 90px;
+  letter-spacing: 0.02em;
+}
+
+.connector {
+  flex: 1;
+  height: 2px;
+  background-color: rgb(52, 78, 107);
+  position: relative;
+  z-index: 0;
+  transition: all 0.3s ease;
+  min-width: 40px;
+}
+
+.step.completed .stepCircle {
+  background-color: #1e4976;
+  border-color: #1e4976;
+  color: white;
+  box-shadow: 0 2px 4px rgba(30, 73, 118, 0.25);
+}
+
+.step.completed .stepLabel {
+  color: rgb(26, 24, 24);
+  font-weight: 600;
+}
+
+.connector.completed {
+  background-color: #1e4976;
+}
+
+.step.active .stepCircle {
+  background-color: rgb(250, 250, 250);
+  border-color: #1e4976;
+  border-width: 2px;
+  color: rgb(18, 45, 73);
+  box-shadow: 0 0 0 3px rgba(30, 73, 118, 0.3), 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.step.active .stepLabel {
+  color: rgb(18, 45, 73);
+  font-weight: 600;
+}
+
+.checkmark {
+  width: 16px;
+  height: 16px;
+  stroke-width: 3;
+}
+
+@media (max-width: 768px) {
+  .progressBarContainer {
+    padding: 0.75rem 0;
+    margin-bottom: 1.5rem;
+  }
+
+  .stepCircle {
+    width: 30px;
+    height: 30px;
+    font-size: 0.85rem;
+  }
+
+  .stepLabel {
+    font-size: 0.75rem;
+    max-width: 80px;
+  }
+
+  .connector {
+    height: 2px;
+  }
+}
+
+@media (max-width: 576px) {
+  .progressBar {
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 15px;
+  }
+
+  .connector {
+    display: none;
+  }
+
+  .step {
+    width: 40%;
+    margin-bottom: 10px;
+  }
+}

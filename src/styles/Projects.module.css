@@ -734,7 +734,7 @@
 .emptyState {
   text-align: center;
   padding: 4rem 2rem;
-  margin-bottom: 8rem;
+  margin-bottom: 12rem;
   background-color: rgb(255, 255, 255);
   border-radius: 8px;
   border: 1px solid rgba(30, 73, 118, 0.1);
@@ -747,7 +747,7 @@
 }
 
 .emptyState p {
-  margin-bottom: 2rem;
+  margin-bottom: 0rem;
 }
 
 .emptyState .createButton {
@@ -1341,7 +1341,6 @@
 .metadataSection:last-child {
   margin-bottom: 0;
   padding-bottom: 0;
-  border-bottom: none;
 }
 
 .metadataSection h3 {
@@ -1588,7 +1587,6 @@
 
 .requirementsWrapper {
   margin-top: 2rem;
-  border-top: 1px solid rgba(30, 73, 118, 0.15);
   padding-top: 1.5rem;
 }
 
@@ -1603,7 +1601,6 @@
 .requirementsWrapper :global(.requirementsTitle) {
   font-size: 1.25rem;
   color: #1e4976;
-  border-bottom: none;
   margin-bottom: 1.25rem;
   padding-bottom: 0;
   display: flex;
