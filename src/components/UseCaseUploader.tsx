@@ -3,7 +3,6 @@ import styles from "../styles/UseCaseUploader.module.css";
 import { useAuth } from "../context/AuthContext";
 import { createAuthenticatedRequest } from "../helpers/apiUtils";
 import { useParams, useNavigate } from "react-router-dom";
-import { RequirementCreateRequestDto } from "../services/RequirementService";
 import {
   UploaderDeleteIcon,
   AddIcon,
@@ -98,19 +97,19 @@ const UseCaseUploader: React.FC = () => {
         try {
           setSavingRequirement(true);
 
-          const requirementData: RequirementCreateRequestDto = {
+          const textRequirementData = {
             title:
               requirementName.trim() ||
               `Requirement from ${new Date().toLocaleString()}`,
             description: "Requirements extracted from text input",
-            sourceType: "TEXT",
+            sourceType: "TEXT" as const,
             sourceContent: description,
           };
 
           const requirementResponse =
-            await api.requirementService.createRequirement(
+            await api.requirementService.createTextRequirement(
               projectId,
-              requirementData
+              textRequirementData
             );
 
           setRequirementId(requirementResponse.id);
@@ -196,19 +195,19 @@ const UseCaseUploader: React.FC = () => {
           const pdfContent =
             pdfText && pdfText.trim() ? pdfText : `PDF: ${file.name}`;
 
-          const requirementData: RequirementCreateRequestDto = {
+          const pdfAsTextRequirementData = {
             title:
               requirementName.trim() ||
               `Requirement from ${new Date().toLocaleString()}`,
-            description: "Requirements extracted from PDF upload",
-            sourceType: "PDF",
+            description: "Requirements extracted from PDF upload (as text)",
+            sourceType: "TEXT" as const,
             sourceContent: pdfContent,
           };
 
           const requirementResponse =
-            await api.requirementService.createRequirement(
+            await api.requirementService.createTextRequirement(
               projectId,
-              requirementData
+              pdfAsTextRequirementData
             );
 
           setRequirementId(requirementResponse.id);

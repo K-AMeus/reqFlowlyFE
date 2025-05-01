@@ -166,10 +166,6 @@ const Project: React.FC<ProjectComponentProps> = ({
     }
   };
 
-  const handleBackToProjects = () => {
-    navigateTo(navigate, "/projects");
-  };
-
   const toggleSidebar = () => {
     setSidebarOpen(!sidebarOpen);
   };
