@@ -2,14 +2,12 @@ import { AxiosInstance } from "axios";
 
 export interface DomainObjectAttributeCreateRequestDto {
   name: string;
-  dataType: string;
 }
 
 export interface DomainObjectAttributeCreateResponseDto {
   id: string;
   domainObjectId: string;
   name: string;
-  dataType: string;
   createdAt?: string;
   updatedAt?: string;
 }
@@ -18,7 +16,6 @@ export interface DomainObjectAttributeDto {
   id: string;
   domainObjectId: string;
   name: string;
-  dataType: string;
   createdAt?: string;
   updatedAt?: string;
 }

@@ -18,6 +18,7 @@ import {
   RequirementDeleteIcon,
   CancelIcon,
 } from "../helpers/icons";
+import { useNavigate } from "react-router-dom";
 
 interface RequirementsListProps {
   projectId: string;
@@ -27,7 +28,7 @@ interface RequirementsListProps {
 const RequirementsList: React.FC<RequirementsListProps> = ({
   projectId,
   onRequirementSelect,
-}) => {
+}): React.ReactElement | null => {
   const [requirements, setRequirements] = useState<RequirementDto[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -64,6 +65,7 @@ const RequirementsList: React.FC<RequirementsListProps> = ({
   >(null);
 
   const { currentUser } = useAuth();
+  const navigate = useNavigate();
 
   useEffect(() => {
     fetchRequirements();
@@ -408,10 +410,15 @@ const RequirementsList: React.FC<RequirementsListProps> = ({
   };
 
   const handleCreateDomainObject = () => {
-    console.log(
-      "Create domain object with requirement:",
-      selectedRequirementId
-    );
+    if (selectedRequirementId && projectId) {
+      navigate(`/projects/${projectId}/domain-objects`, {
+        state: { selectedRequirementId },
+      });
+    } else {
+      console.warn(
+        "Create domain object clicked without a selected requirement or project ID"
+      );
+    }
   };
 
   const renderPagination = () => {

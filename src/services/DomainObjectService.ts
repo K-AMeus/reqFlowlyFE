@@ -33,14 +33,12 @@ export interface DomainObjectResponseDto {
 
 export interface DomainObjectAttributeCreateRequestDto {
   name: string;
-  dataType: string;
 }
 
 export interface DomainObjectAttributeCreateResponseDto {
   id: string;
   domainObjectId: string;
   name: string;
-  dataType: string;
   createdAt?: string;
   updatedAt?: string;
 }
@@ -49,7 +47,6 @@ export interface DomainObjectAttributeDto {
   id: string;
   domainObjectId: string;
   name: string;
-  dataType: string;
   createdAt?: string;
   updatedAt?: string;
 }
@@ -107,7 +104,6 @@ export class DomainObjectService {
     )) {
       const attributeDtos = attributes.map((attrName) => ({
         name: attrName,
-        dataType: "string",
       }));
 
       payload.domainObjectsWithAttributes[domainName] = attributeDtos;

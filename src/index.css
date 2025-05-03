@@ -3,14 +3,16 @@ html {
 }
 
 body {
+  margin: 0;
+  font-family: "Segoe UI", sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
   background-color: #061c32;
   background-image: linear-gradient(135deg, #dcd8d0 0%, rgb(8, 43, 65) 100%);
-  margin: 0;
-  padding: 0;
-  min-height: 100vh;
-  font-family: "Segoe UI", sans-serif;
   color: #ffffff;
+  position: relative;
   overflow-x: hidden;
+  min-height: 100vh;
 }
 
 * {
@@ -36,4 +38,106 @@ main {
 
 footer {
   margin-top: auto;
+}
+
+body::before,
+body::after,
+html::before,
+html::after,
+#root::before,
+#root::after {
+  content: "";
+  position: fixed;
+  z-index: -1;
+  background: linear-gradient(
+    135deg,
+    rgba(30, 73, 118, 0.2) 0%,
+    rgba(77, 137, 196, 0.3) 100%
+  );
+  transform-origin: top left;
+  box-shadow: 0 0 15px rgba(77, 137, 196, 0.15);
+  pointer-events: none;
+}
+
+body::before {
+  top: -20%;
+  left: 10%;
+  width: 300%;
+  height: 50px;
+  opacity: 0.8;
+  transform: rotate(35deg);
+}
+
+body::after {
+  top: -5%;
+  left: 30%;
+  width: 350%;
+  height: 30px;
+  opacity: 0.6;
+  transform: rotate(60deg);
+}
+
+html::before {
+  top: 50%;
+  left: -30%;
+  width: 320%;
+  height: 60px;
+  opacity: 0.5;
+  transform: rotate(-40deg);
+  background: linear-gradient(
+    -130deg,
+    rgba(44, 93, 143, 0.15) 0%,
+    rgba(77, 137, 196, 0.25) 100%
+  );
+  box-shadow: 0 0 20px rgba(77, 137, 196, 0.1);
+}
+
+html::after {
+  top: 0%;
+  left: 60%;
+  width: 280%;
+  height: 25px;
+  opacity: 0.7;
+  transform: rotate(75deg);
+  background: linear-gradient(
+    50deg,
+    rgba(30, 73, 118, 0.25) 0%,
+    rgba(60, 110, 170, 0.35) 100%
+  );
+  box-shadow: 0 0 10px rgba(77, 137, 196, 0.2);
+}
+
+#root::before {
+  top: 110%;
+  left: -15%;
+  width: 400%;
+  height: 35px;
+  opacity: 0.45;
+  transform: rotate(-25deg);
+  background: linear-gradient(
+    -110deg,
+    rgba(50, 90, 130, 0.2) 0%,
+    rgba(35, 75, 120, 0.3) 100%
+  );
+  box-shadow: 0 0 18px rgba(77, 137, 196, 0.12);
+}
+
+#root::after {
+  top: 70%;
+  left: 0%;
+  width: 260%;
+  height: 35px;
+  opacity: 0.55;
+  transform: rotate(20deg);
+  background: linear-gradient(
+    30deg,
+    rgba(70, 125, 190, 0.25) 0%,
+    rgba(40, 85, 140, 0.35) 100%
+  );
+  box-shadow: 0 0 14px rgba(77, 137, 196, 0.18);
+}
+
+code {
+  font-family: source-code-pro, Menlo, Monaco, Consolas, "Courier New",
+    monospace;
 }

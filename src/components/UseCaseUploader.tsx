@@ -2,7 +2,7 @@ import React, { useState, ChangeEvent, useEffect } from "react";
 import styles from "../styles/UseCaseUploader.module.css";
 import { useAuth } from "../context/AuthContext";
 import { createAuthenticatedRequest } from "../helpers/apiUtils";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, useLocation } from "react-router-dom";
 import {
   UploaderDeleteIcon,
   AddIcon,
@@ -10,9 +10,10 @@ import {
   UploaderSaveIcon,
   UploaderCancelIcon,
 } from "../helpers/icons";
-import pdfToText from "react-pdftotext";
 import { navigateToUseCases } from "../helpers/navigationUtils";
 import { showGlobalToast } from "../helpers/toastUtils";
+import { RequirementDto } from "../services/RequirementService";
+import { PDFIcon } from "../helpers/icons";
 
 interface UseCaseResponse {
   domainObjects: { [key: string]: string[] };
@@ -27,7 +28,6 @@ interface AttributeEdit {
 
 const UseCaseUploader: React.FC = () => {
   const [description, setDescription] = useState("");
-  const [requirementName, setRequirementName] = useState("");
   const [customPrompt, setCustomPrompt] = useState("");
   const [file, setFile] = useState<File | null>(null);
   const [domainObjects, setDomainObjects] = useState<{
@@ -45,20 +45,98 @@ const UseCaseUploader: React.FC = () => {
   const [selectedTab, setSelectedTab] = useState<"text" | "file">("text");
   const [activeView, setActiveView] = useState<"input" | "results">("input");
   const [resultsReady, setResultsReady] = useState(false);
-  const [savingRequirement, setSavingRequirement] = useState(false);
-  const [pdfText, setPdfText] = useState<string>("");
-  const [extractingPdfText, setExtractingPdfText] = useState(false);
   const [editingDomain, setEditingDomain] = useState<string | null>(null);
   const [editingName, setEditingName] = useState("");
   const [editingAttributes, setEditingAttributes] = useState<AttributeEdit[]>(
     []
   );
   const [savingDomainObjects, setSavingDomainObjects] = useState(false);
-  const [requirementId, setRequirementId] = useState("");
+  const [allRequirements, setAllRequirements] = useState<RequirementDto[]>([]);
+  const [isLoadingRequirements, setIsLoadingRequirements] = useState(false);
+  const [chosenRequirementId, setChosenRequirementId] = useState<
+    string | "new"
+  >("new");
+  const [newRequirementTitle, setNewRequirementTitle] = useState("");
+  const [newRequirementDescription, setNewRequirementDescription] =
+    useState("");
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [selectedRequirementLabel, setSelectedRequirementLabel] =
+    useState<string>("-- Create New Requirement --");
+  const [selectedReqDescription, setSelectedReqDescription] =
+    useState<string>("");
+  const [createdRequirementId, setCreatedRequirementId] = useState<
+    string | null
+  >(null);
+  const dropdownRef = React.useRef<HTMLDivElement>(null);
 
   const { currentUser } = useAuth();
   const { projectId } = useParams<{ projectId: string }>();
   const navigate = useNavigate();
+  const location = useLocation();
+
+  useEffect(() => {
+    const fetchRequirements = async () => {
+      if (!projectId) return;
+      setIsLoadingRequirements(true);
+      try {
+        const api = await createAuthenticatedRequest(currentUser);
+        const response = await api.requirementService.getAllRequirements(
+          projectId,
+          0,
+          1000
+        );
+        const fetchedRequirements = response.content || [];
+        setAllRequirements(fetchedRequirements);
+
+        if (location.state?.selectedRequirementId) {
+          const reqId = location.state.selectedRequirementId as string;
+          const preSelectedReq = fetchedRequirements.find(
+            (r) => r.id === reqId
+          );
+          if (preSelectedReq) {
+            setChosenRequirementId(reqId);
+            setSelectedRequirementLabel(
+              `${preSelectedReq.title} (${preSelectedReq.sourceType})`
+            );
+            setSelectedReqDescription(preSelectedReq.description || "");
+          } else {
+            setChosenRequirementId("new");
+            setSelectedRequirementLabel("-- Create New Requirement --");
+            setSelectedReqDescription("");
+          }
+          window.history.replaceState({}, document.title);
+        } else {
+          setChosenRequirementId("new");
+          setSelectedRequirementLabel("-- Create New Requirement --");
+          setSelectedReqDescription("");
+        }
+      } catch (err) {
+        console.error("Error fetching all requirements:", err);
+        setError("Failed to load existing requirements.");
+        setChosenRequirementId("new");
+        setSelectedRequirementLabel("-- Create New Requirement --");
+        setSelectedReqDescription("");
+      } finally {
+        setIsLoadingRequirements(false);
+      }
+    };
+    fetchRequirements();
+  }, [projectId, currentUser, location.state]);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        dropdownRef.current &&
+        !dropdownRef.current.contains(event.target as Node)
+      ) {
+        setIsDropdownOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [dropdownRef]);
 
   useEffect(() => {
     if (
@@ -72,18 +150,42 @@ const UseCaseUploader: React.FC = () => {
     }
   }, [loading, resultsReady, domainObjects, suggestedDomainObjects]);
 
+  useEffect(() => {
+    if (chosenRequirementId === "new") {
+      setDescription("");
+      setSelectedReqDescription("");
+    } else {
+      const selectedReq = allRequirements.find(
+        (r) => r.id === chosenRequirementId
+      );
+      setDescription(selectedReq?.sourceContent || "");
+      setSelectedReqDescription(selectedReq?.description || "");
+    }
+  }, [chosenRequirementId, allRequirements]);
+
   const showNotification = (type: "success" | "error", message: string) => {
     showGlobalToast(type, message);
   };
 
-  const handleTextSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    if (!description.trim()) {
-      setError("Please enter some text to process.");
+  const handleTextSubmit = async () => {
+    if (chosenRequirementId === "new") {
+      if (!newRequirementTitle.trim()) {
+        setError("Please enter a title for the new requirement.");
+        return;
+      }
+      if (!description.trim()) {
+        setError("Please enter the requirements specification content.");
+        return;
+      }
+    }
+
+    if (!description.trim() && chosenRequirementId !== "new") {
+      setError("No requirement content found to process.");
       return;
     }
 
     setError("");
+    setCreatedRequirementId(null);
     setDomainObjects({});
     setRemovedDomainObjects({});
     setSuggestedDomainObjects({});
@@ -93,35 +195,36 @@ const UseCaseUploader: React.FC = () => {
     try {
       const api = await createAuthenticatedRequest(currentUser);
 
-      if (projectId) {
+      if (chosenRequirementId === "new") {
         try {
-          setSavingRequirement(true);
-
-          const textRequirementData = {
-            title:
-              requirementName.trim() ||
-              `Requirement from ${new Date().toLocaleString()}`,
-            description: "Requirements extracted from text input",
+          const newReqData = {
+            title: newRequirementTitle.trim(),
+            description:
+              newRequirementDescription.trim() ||
+              "Created from text input during domain generation",
             sourceType: "TEXT" as const,
-            sourceContent: description,
+            sourceContent: description.trim(),
           };
-
           const requirementResponse =
             await api.requirementService.createTextRequirement(
-              projectId,
-              textRequirementData
+              projectId!,
+              newReqData
             );
-
-          setRequirementId(requirementResponse.id);
-        } catch (err) {
-          console.error("Error saving requirement:", err);
-        } finally {
-          setSavingRequirement(false);
+          setCreatedRequirementId(requirementResponse.id);
+          showNotification(
+            "success",
+            `Requirement "${newReqData.title}" created.`
+          );
+        } catch (reqErr) {
+          console.error("Error creating new requirement:", reqErr);
+          setError("Failed to create the new requirement. Cannot proceed.");
+          setLoading(false);
+          return;
         }
       }
 
       const response = await api.post<UseCaseResponse>(
-        "/usecase-service/v1/usecases/text",
+        "/domain-object-service/v1/generation/text",
         { description, customPrompt }
       );
       setDomainObjects(response.data.domainObjects || {});
@@ -135,43 +238,26 @@ const UseCaseUploader: React.FC = () => {
     }
   };
 
-  const onFileChange = async (e: ChangeEvent<HTMLInputElement>) => {
+  const onFileChange = (e: ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
       const selectedFile = e.target.files[0];
       setFile(selectedFile);
-      setPdfText("");
-
-      if (selectedFile.type === "application/pdf") {
-        try {
-          setExtractingPdfText(true);
-          setError("");
-
-          const extractedText = await pdfToText(selectedFile);
-
-          if (extractedText && extractedText.length > 0) {
-            setPdfText(extractedText);
-          } else {
-            setPdfText(`PDF: ${selectedFile.name}`);
-            setError(
-              "Could not extract text from the PDF. The file may be scanned or contain only images."
-            );
-          }
-        } catch (error) {
-          console.error("Error processing PDF:", error);
-          setError(
-            "Failed to extract text from PDF. Please try again or use a different file."
-          );
-          setPdfText(`PDF: ${selectedFile.name}`);
-        } finally {
-          setExtractingPdfText(false);
-        }
-      }
+      setError("");
     }
   };
 
-  const handleFileSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
+  const handleFileSubmit = async () => {
     if (!file) return;
+
+    if (chosenRequirementId === "new") {
+      if (!newRequirementTitle.trim()) {
+        setError(
+          "Please enter a title for the new requirement before uploading a file."
+        );
+        return;
+      }
+    }
+
     setError("");
     setDomainObjects({});
     setRemovedDomainObjects({});
@@ -180,46 +266,53 @@ const UseCaseUploader: React.FC = () => {
     setResultsReady(false);
 
     try {
+      const api = await createAuthenticatedRequest(currentUser);
+
+      if (chosenRequirementId === "new") {
+        try {
+          const newReqData = {
+            title: newRequirementTitle.trim(),
+            description:
+              newRequirementDescription.trim() ||
+              "Created from PDF upload during domain generation",
+            sourceType: "PDF" as const,
+            sourceContent: "",
+            sourceFileUrl: "",
+          };
+
+          const requirementResponse =
+            await api.requirementService.createPdfRequirement(
+              projectId!,
+              newReqData,
+              file
+            );
+
+          setCreatedRequirementId(requirementResponse.id);
+          showNotification(
+            "success",
+            `Requirement "${newReqData.title}" created.`
+          );
+        } catch (reqErr) {
+          console.error(
+            "Error creating new requirement for PDF upload:",
+            reqErr
+          );
+          setError(
+            "Failed to create the new requirement record. Cannot proceed with upload."
+          );
+          setLoading(false);
+          return;
+        }
+      }
+
       const formData = new FormData();
       formData.append("file", file);
       if (customPrompt.trim()) {
         formData.append("customPrompt", customPrompt);
       }
 
-      const api = await createAuthenticatedRequest(currentUser);
-
-      if (projectId) {
-        try {
-          setSavingRequirement(true);
-
-          const pdfContent =
-            pdfText && pdfText.trim() ? pdfText : `PDF: ${file.name}`;
-
-          const pdfAsTextRequirementData = {
-            title:
-              requirementName.trim() ||
-              `Requirement from ${new Date().toLocaleString()}`,
-            description: "Requirements extracted from PDF upload (as text)",
-            sourceType: "TEXT" as const,
-            sourceContent: pdfContent,
-          };
-
-          const requirementResponse =
-            await api.requirementService.createTextRequirement(
-              projectId,
-              pdfAsTextRequirementData
-            );
-
-          setRequirementId(requirementResponse.id);
-        } catch (err) {
-          console.error("Error saving requirement:", err);
-        } finally {
-          setSavingRequirement(false);
-        }
-      }
-
       const response = await api.post<UseCaseResponse>(
-        "/usecase-service/v1/usecases/upload",
+        "/domain-object-service/v1/generation/pdf",
         formData,
         {
           headers: {
@@ -396,23 +489,35 @@ const UseCaseUploader: React.FC = () => {
   const handleFinalizeDomainObjects = async () => {
     if (!projectId) {
       setError("Project ID is missing.");
+      showNotification("error", "Project ID is missing.");
       return;
     }
 
-    if (!requirementId) {
-      setError("Requirement ID is missing. Please try again.");
+    if (chosenRequirementId === "new" && !newRequirementTitle.trim()) {
+      setError("Please enter a title for the new requirement.");
+      showNotification("error", "New requirement title is missing.");
       return;
     }
+    
+    const finalRequirementId =
+      chosenRequirementId === "new"
+        ? createdRequirementId
+        : chosenRequirementId;
+
+    if (!finalRequirementId) {
+      setError("Could not determine requirement ID for saving domain objects.");
+      showNotification("error", "Requirement ID missing for saving.");
+      return;
+    }
+
+    const api = await createAuthenticatedRequest(currentUser);
+    setSavingDomainObjects(true);
+    setError("");
 
     try {
-      setSavingDomainObjects(true);
-      setError("");
-
-      const api = await createAuthenticatedRequest(currentUser);
-
       await api.domainObjectService.createDomainObjectsBatch(
         projectId,
-        requirementId,
+        finalRequirementId,
         domainObjects
       );
 
@@ -424,6 +529,22 @@ const UseCaseUploader: React.FC = () => {
       showNotification("error", "Failed to save domain objects.");
     } finally {
       setSavingDomainObjects(false);
+    }
+  };
+
+  const toggleDropdown = () => {
+    if (!isLoadingRequirements) {
+      setIsDropdownOpen(!isDropdownOpen);
+    }
+  };
+
+  const handleSelectRequirement = (id: string | "new", label: string) => {
+    setChosenRequirementId(id);
+    setCreatedRequirementId(null);
+    setSelectedRequirementLabel(label);
+    setIsDropdownOpen(false);
+    if (id !== "new") {
+      setNewRequirementTitle("");
     }
   };
 
@@ -459,52 +580,184 @@ const UseCaseUploader: React.FC = () => {
 
         {activeView === "input" && (
           <>
-            <div className={styles.tabButtons}>
-              <button
-                onClick={() => setSelectedTab("text")}
-                disabled={selectedTab === "text"}
-                className={`${styles.tabButton} ${
-                  selectedTab === "text" ? styles.active : ""
-                }`}
+            {chosenRequirementId === "new" && (
+              <div className={styles.tabButtons}>
+                <button
+                  onClick={() => setSelectedTab("text")}
+                  disabled={selectedTab === "text"}
+                  className={`${styles.tabButton} ${
+                    selectedTab === "text" ? styles.active : ""
+                  }`}
+                >
+                  Text Input
+                </button>
+                <button
+                  onClick={() => setSelectedTab("file")}
+                  disabled={selectedTab === "file"}
+                  className={`${styles.tabButton} ${
+                    selectedTab === "file" ? styles.active : ""
+                  }`}
+                >
+                  PDF Upload
+                </button>
+              </div>
+            )}
+
+            {chosenRequirementId !== "new" && (
+              <div
+                className={styles.inputWrapper}
+                style={{ marginBottom: "6px" }}
               >
-                Text Input
-              </button>
-              <button
-                onClick={() => setSelectedTab("file")}
-                disabled={selectedTab === "file"}
-                className={`${styles.tabButton} ${
-                  selectedTab === "file" ? styles.active : ""
-                }`}
-              >
-                PDF Upload
-              </button>
+                <label className={styles.inputLabel}>Requirement title</label>
+              </div>
+            )}
+
+            <div className={styles.inputWrapper} ref={dropdownRef}>
+              <div className={styles.customDropdownContainer}>
+                <button
+                  type="button"
+                  className={styles.customDropdownTrigger}
+                  onClick={toggleDropdown}
+                  disabled={isLoadingRequirements}
+                >
+                  <span>{selectedRequirementLabel}</span>
+                  <span
+                    className={`${styles.dropdownArrow} ${
+                      isDropdownOpen ? styles.dropdownArrowOpen : ""
+                    }`}
+                  ></span>
+                </button>
+                {isDropdownOpen && (
+                  <ul className={styles.customDropdownOptions}>
+                    <li
+                      className={`${styles.customDropdownOption} ${
+                        chosenRequirementId === "new"
+                          ? styles.customDropdownOptionActive
+                          : ""
+                      }`}
+                      onClick={() =>
+                        handleSelectRequirement(
+                          "new",
+                          "-- Create New Requirement --"
+                        )
+                      }
+                    >
+                      -- Create New Requirement --
+                    </li>
+                    {isLoadingRequirements ? (
+                      <li
+                        className={`${styles.customDropdownOption} ${styles.disabled}`}
+                      >
+                        Loading...
+                      </li>
+                    ) : (
+                      allRequirements.map((req) => (
+                        <li
+                          key={req.id}
+                          className={`${styles.customDropdownOption} ${
+                            chosenRequirementId === req.id
+                              ? styles.customDropdownOptionActive
+                              : ""
+                          }`}
+                          onClick={() =>
+                            handleSelectRequirement(
+                              req.id,
+                              `${req.title} (${req.sourceType})`
+                            )
+                          }
+                        >
+                          {req.title}{" "}
+                          <span className={styles.reqSourceType}>
+                            ({req.sourceType})
+                          </span>
+                        </li>
+                      ))
+                    )}
+                  </ul>
+                )}
+              </div>
             </div>
 
-            {selectedTab === "text" && (
-              <form onSubmit={handleTextSubmit} className={styles.form}>
+            {chosenRequirementId === "new" && (
+              <>
                 <div className={styles.inputWrapper}>
-                  <label className={styles.inputLabel}>
-                    Requirement identifier
+                  <label htmlFor="newReqTitle" className={styles.inputLabel}>
+                    Requirement Title
                   </label>
                   <input
                     type="text"
+                    id="newReqTitle"
                     className={styles.customPromptInput}
-                    value={requirementName}
-                    onChange={(e) => setRequirementName(e.target.value)}
-                    placeholder="Enter a name to identify this requirement"
+                    value={newRequirementTitle}
+                    onChange={(e) => setNewRequirementTitle(e.target.value)}
+                    placeholder="Enter title for the new requirement"
                     required
                   />
                 </div>
+                <div className={styles.inputWrapper}>
+                  <label
+                    htmlFor="newReqDesc"
+                    className={`${styles.inputLabel} ${styles.optional}`}
+                  >
+                    Description (Optional)
+                  </label>
+                  <textarea
+                    id="newReqDesc"
+                    className={`${styles.textarea} ${styles.requirementDescriptionDisplay}`}
+                    value={newRequirementDescription}
+                    onChange={(e) =>
+                      setNewRequirementDescription(e.target.value)
+                    }
+                    placeholder="Enter description for the new requirement (optional)"
+                    rows={3}
+                  />
+                </div>
+              </>
+            )}
+
+            {chosenRequirementId !== "new" && (
+              <>
+                <div
+                  className={styles.inputWrapper}
+                  style={{ marginTop: "0.5rem" }}
+                >
+                  <label className={styles.inputLabel}>
+                    Requirement Description
+                  </label>
+                  <textarea
+                    className={`${styles.textarea} ${styles.textareaReadOnly} ${styles.requirementDescriptionDisplay}`}
+                    value={selectedReqDescription}
+                    placeholder={
+                      "No description provided for selected requirement."
+                    }
+                    readOnly
+                    rows={3}
+                  />
+                </div>
+              </>
+            )}
+
+            {selectedTab === "text" && (
+              <div className={styles.formContents}>
                 <div className={styles.inputWrapper}>
                   <label className={styles.inputLabel}>
                     Requirements specification
                   </label>
                   <textarea
-                    className={styles.textarea}
+                    className={`${styles.textarea} ${
+                      chosenRequirementId !== "new"
+                        ? styles.textareaReadOnly
+                        : ""
+                    }`}
                     value={description}
                     onChange={(e) => setDescription(e.target.value)}
-                    placeholder="Enter your requirements details here"
-                    required
+                    placeholder={
+                      chosenRequirementId === "new"
+                        ? "Enter your requirements details here"
+                        : "Requirement content loaded (read-only)"
+                    }
+                    required={chosenRequirementId === "new"}
+                    readOnly={chosenRequirementId !== "new"}
                   />
                 </div>
                 <div className={styles.inputWrapper}>
@@ -519,66 +772,63 @@ const UseCaseUploader: React.FC = () => {
                     placeholder="Specific instructions for processing this requirement"
                   />
                 </div>
-                <button
-                  type="submit"
-                  disabled={loading || savingRequirement}
-                  className={styles.submitButton}
-                >
-                  {loading ? (
-                    <>
-                      <span className={styles.loading}></span>
-                      Processing...
-                    </>
-                  ) : savingRequirement ? (
-                    <>
-                      <span className={styles.loading}></span>
-                      Saving Requirement...
-                    </>
-                  ) : (
-                    "Submit Text"
-                  )}
-                </button>
-              </form>
+                <div className={styles.submitButtonWrapper}>
+                  <button
+                    type="button"
+                    onClick={handleTextSubmit}
+                    disabled={loading}
+                    className={styles.submitButton}
+                  >
+                    {loading ? (
+                      <>
+                        <span className={styles.loading}></span>
+                        Processing...
+                      </>
+                    ) : (
+                      "Create Domain Objects"
+                    )}
+                  </button>
+                </div>
+              </div>
             )}
 
             {selectedTab === "file" && (
-              <form onSubmit={handleFileSubmit} className={styles.form}>
+              <div className={styles.formContents}>
                 <div className={styles.inputWrapper}>
-                  <label className={styles.inputLabel}>
-                    Requirement identifier
+                  <label
+                    htmlFor="fileInputUploader"
+                    className={styles.inputLabel}
+                  >
+                    PDF document
                   </label>
-                  <input
-                    type="text"
-                    className={styles.customPromptInput}
-                    value={requirementName}
-                    onChange={(e) => setRequirementName(e.target.value)}
-                    placeholder="Enter a name to identify this requirement"
-                    required
-                  />
-                </div>
-                <div className={styles.inputWrapper}>
-                  <label className={styles.inputLabel}>PDF document</label>
-                  <input
-                    type="file"
-                    accept="application/pdf"
-                    onChange={onFileChange}
-                    className={styles.fileInput}
-                    required
-                  />
-                  {extractingPdfText && (
-                    <div className={styles.pdfExtractionInfo}>
-                      <span className={styles.loading}></span>
-                      Extracting text from PDF...
+                  <div className={styles.fileUploadContainer}>
+                    <input
+                      type="file"
+                      id="fileInputUploader"
+                      accept=".pdf"
+                      onChange={onFileChange}
+                      className={styles.fileInput}
+                      disabled={loading}
+                      required
+                    />
+                    <div
+                      className={`${styles.fileUploadBox} ${
+                        loading ? styles.fileUploadBoxDisabled : ""
+                      }`}
+                    >
+                      {file ? (
+                        <div className={styles.selectedFile}>
+                          <PDFIcon />
+                          {file.name}
+                        </div>
+                      ) : (
+                        <div className={styles.fileUploadPrompt}>
+                          <span>Click to select or drop a PDF file here</span>
+                          <span className={styles.fileLimit}>(Max 10MB)</span>
+                        </div>
+                      )}
                     </div>
-                  )}
-                  {!extractingPdfText &&
-                    pdfText &&
-                    !pdfText.startsWith("PDF:") && (
-                      <div className={styles.pdfExtractionSuccess}>
-                        ✓ Text successfully extracted (
-                        {Math.round(pdfText.length / 1000)}K characters)
-                      </div>
-                    )}
+                  </div>
                 </div>
                 <div className={styles.inputWrapper}>
                   <label className={`${styles.inputLabel} ${styles.optional}`}>
@@ -592,28 +842,24 @@ const UseCaseUploader: React.FC = () => {
                     placeholder="Specific instructions for processing this requirement"
                   />
                 </div>
-                <button
-                  type="submit"
-                  disabled={
-                    loading || !file || savingRequirement || extractingPdfText
-                  }
-                  className={styles.submitButton}
-                >
-                  {loading ? (
-                    <>
-                      <span className={styles.loading}></span>
-                      Processing...
-                    </>
-                  ) : savingRequirement ? (
-                    <>
-                      <span className={styles.loading}></span>
-                      Saving Requirement...
-                    </>
-                  ) : (
-                    "Upload PDF"
-                  )}
-                </button>
-              </form>
+                <div className={styles.submitButtonWrapper}>
+                  <button
+                    type="button"
+                    onClick={handleFileSubmit}
+                    disabled={loading || !file}
+                    className={styles.submitButton}
+                  >
+                    {loading ? (
+                      <>
+                        <span className={styles.loading}></span>
+                        Processing...
+                      </>
+                    ) : (
+                      "Create Domain Objects"
+                    )}
+                  </button>
+                </div>
+              </div>
             )}
 
             {error && <p className={styles.error}>{error}</p>}
@@ -830,8 +1076,7 @@ const UseCaseUploader: React.FC = () => {
               </button>
             </div>
 
-            {(Object.keys(domainObjects).length > 0 ||
-              Object.keys(removedDomainObjects).length > 0) && (
+            {Object.keys(domainObjects).length > 0 && (
               <button
                 className={styles.finalizeButton}
                 disabled={loading || savingDomainObjects}
