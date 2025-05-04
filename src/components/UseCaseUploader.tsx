@@ -498,7 +498,7 @@ const UseCaseUploader: React.FC = () => {
       showNotification("error", "New requirement title is missing.");
       return;
     }
-    
+
     const finalRequirementId =
       chosenRequirementId === "new"
         ? createdRequirementId
@@ -557,371 +557,450 @@ const UseCaseUploader: React.FC = () => {
         <div className={styles.diagonalLine}></div>
         <h1 className={styles.title}>Domain Object Generator</h1>
 
-        {hasResults && (
-          <div className={styles.mainTabs}>
-            <button
-              onClick={() => setActiveView("input")}
-              className={`${styles.mainTab} ${
-                activeView === "input" ? styles.activeMainTab : ""
-              }`}
-            >
-              Input
-            </button>
-            <button
-              onClick={() => setActiveView("results")}
-              className={`${styles.mainTab} ${
-                activeView === "results" ? styles.activeMainTab : ""
-              }`}
-            >
-              Results
-            </button>
+        {isLoadingRequirements ? (
+          <div className={styles.loadingContainer}>
+            <div className={styles.spinner}></div>
+            <p>Booting up the generator...</p>
           </div>
-        )}
-
-        {activeView === "input" && (
+        ) : (
           <>
-            {chosenRequirementId === "new" && (
-              <div className={styles.tabButtons}>
+            {hasResults && (
+              <div className={styles.mainTabs}>
                 <button
-                  onClick={() => setSelectedTab("text")}
-                  disabled={selectedTab === "text"}
-                  className={`${styles.tabButton} ${
-                    selectedTab === "text" ? styles.active : ""
+                  onClick={() => setActiveView("input")}
+                  className={`${styles.mainTab} ${
+                    activeView === "input" ? styles.activeMainTab : ""
                   }`}
                 >
-                  Text Input
+                  Input
                 </button>
                 <button
-                  onClick={() => setSelectedTab("file")}
-                  disabled={selectedTab === "file"}
-                  className={`${styles.tabButton} ${
-                    selectedTab === "file" ? styles.active : ""
+                  onClick={() => setActiveView("results")}
+                  className={`${styles.mainTab} ${
+                    activeView === "results" ? styles.activeMainTab : ""
                   }`}
                 >
-                  PDF Upload
+                  Results
                 </button>
               </div>
             )}
 
-            {chosenRequirementId !== "new" && (
-              <div
-                className={styles.inputWrapper}
-                style={{ marginBottom: "6px" }}
-              >
-                <label className={styles.inputLabel}>Requirement title</label>
-              </div>
-            )}
-
-            <div className={styles.inputWrapper} ref={dropdownRef}>
-              <div className={styles.customDropdownContainer}>
-                <button
-                  type="button"
-                  className={styles.customDropdownTrigger}
-                  onClick={toggleDropdown}
-                  disabled={isLoadingRequirements}
-                >
-                  <span>{selectedRequirementLabel}</span>
-                  <span
-                    className={`${styles.dropdownArrow} ${
-                      isDropdownOpen ? styles.dropdownArrowOpen : ""
-                    }`}
-                  ></span>
-                </button>
-                {isDropdownOpen && (
-                  <ul className={styles.customDropdownOptions}>
-                    <li
-                      className={`${styles.customDropdownOption} ${
-                        chosenRequirementId === "new"
-                          ? styles.customDropdownOptionActive
-                          : ""
+            {activeView === "input" && (
+              <>
+                {chosenRequirementId === "new" && (
+                  <div className={styles.tabButtons}>
+                    <button
+                      onClick={() => setSelectedTab("text")}
+                      disabled={selectedTab === "text"}
+                      className={`${styles.tabButton} ${
+                        selectedTab === "text" ? styles.active : ""
                       }`}
-                      onClick={() =>
-                        handleSelectRequirement(
-                          "new",
-                          "-- Create New Requirement --"
-                        )
-                      }
                     >
-                      -- Create New Requirement --
-                    </li>
-                    {isLoadingRequirements ? (
-                      <li
-                        className={`${styles.customDropdownOption} ${styles.disabled}`}
-                      >
-                        Loading...
-                      </li>
-                    ) : (
-                      allRequirements.map((req) => (
+                      Text Input
+                    </button>
+                    <button
+                      onClick={() => setSelectedTab("file")}
+                      disabled={selectedTab === "file"}
+                      className={`${styles.tabButton} ${
+                        selectedTab === "file" ? styles.active : ""
+                      }`}
+                    >
+                      PDF Upload
+                    </button>
+                  </div>
+                )}
+
+                {chosenRequirementId !== "new" && (
+                  <div
+                    className={styles.inputWrapper}
+                    style={{ marginBottom: "6px" }}
+                  >
+                    <label className={styles.inputLabel}>
+                      Requirement title
+                    </label>
+                  </div>
+                )}
+
+                <div className={styles.inputWrapper} ref={dropdownRef}>
+                  <div className={styles.customDropdownContainer}>
+                    <button
+                      type="button"
+                      className={styles.customDropdownTrigger}
+                      onClick={toggleDropdown}
+                      disabled={isLoadingRequirements}
+                    >
+                      <span>{selectedRequirementLabel}</span>
+                      <span
+                        className={`${styles.dropdownArrow} ${
+                          isDropdownOpen ? styles.dropdownArrowOpen : ""
+                        }`}
+                      ></span>
+                    </button>
+                    {isDropdownOpen && (
+                      <ul className={styles.customDropdownOptions}>
                         <li
-                          key={req.id}
                           className={`${styles.customDropdownOption} ${
-                            chosenRequirementId === req.id
+                            chosenRequirementId === "new"
                               ? styles.customDropdownOptionActive
                               : ""
                           }`}
                           onClick={() =>
                             handleSelectRequirement(
-                              req.id,
-                              `${req.title} (${req.sourceType})`
+                              "new",
+                              "-- Create New Requirement --"
                             )
                           }
                         >
-                          {req.title}{" "}
-                          <span className={styles.reqSourceType}>
-                            ({req.sourceType})
-                          </span>
+                          -- Create New Requirement --
                         </li>
-                      ))
+                        {isLoadingRequirements ? (
+                          <li
+                            className={`${styles.customDropdownOption} ${styles.disabled}`}
+                          >
+                            Loading...
+                          </li>
+                        ) : (
+                          allRequirements.map((req) => (
+                            <li
+                              key={req.id}
+                              className={`${styles.customDropdownOption} ${
+                                chosenRequirementId === req.id
+                                  ? styles.customDropdownOptionActive
+                                  : ""
+                              }`}
+                              onClick={() =>
+                                handleSelectRequirement(
+                                  req.id,
+                                  `${req.title} (${req.sourceType})`
+                                )
+                              }
+                            >
+                              {req.title}{" "}
+                              <span className={styles.reqSourceType}>
+                                ({req.sourceType})
+                              </span>
+                            </li>
+                          ))
+                        )}
+                      </ul>
                     )}
-                  </ul>
-                )}
-              </div>
-            </div>
-
-            {chosenRequirementId === "new" && (
-              <>
-                <div className={styles.inputWrapper}>
-                  <label htmlFor="newReqTitle" className={styles.inputLabel}>
-                    Requirement Title
-                  </label>
-                  <input
-                    type="text"
-                    id="newReqTitle"
-                    className={styles.customPromptInput}
-                    value={newRequirementTitle}
-                    onChange={(e) => setNewRequirementTitle(e.target.value)}
-                    placeholder="Enter title for the new requirement"
-                    required
-                  />
-                </div>
-                <div className={styles.inputWrapper}>
-                  <label
-                    htmlFor="newReqDesc"
-                    className={`${styles.inputLabel} ${styles.optional}`}
-                  >
-                    Description (Optional)
-                  </label>
-                  <textarea
-                    id="newReqDesc"
-                    className={`${styles.textarea} ${styles.requirementDescriptionDisplay}`}
-                    value={newRequirementDescription}
-                    onChange={(e) =>
-                      setNewRequirementDescription(e.target.value)
-                    }
-                    placeholder="Enter description for the new requirement (optional)"
-                    rows={3}
-                  />
-                </div>
-              </>
-            )}
-
-            {chosenRequirementId !== "new" && (
-              <>
-                <div
-                  className={styles.inputWrapper}
-                  style={{ marginTop: "0.5rem" }}
-                >
-                  <label className={styles.inputLabel}>
-                    Requirement Description
-                  </label>
-                  <textarea
-                    className={`${styles.textarea} ${styles.textareaReadOnly} ${styles.requirementDescriptionDisplay}`}
-                    value={selectedReqDescription}
-                    placeholder={
-                      "No description provided for selected requirement."
-                    }
-                    readOnly
-                    rows={3}
-                  />
-                </div>
-              </>
-            )}
-
-            {selectedTab === "text" && (
-              <div className={styles.formContents}>
-                <div className={styles.inputWrapper}>
-                  <label className={styles.inputLabel}>
-                    Requirements specification
-                  </label>
-                  <textarea
-                    className={`${styles.textarea} ${
-                      chosenRequirementId !== "new"
-                        ? styles.textareaReadOnly
-                        : ""
-                    }`}
-                    value={description}
-                    onChange={(e) => setDescription(e.target.value)}
-                    placeholder={
-                      chosenRequirementId === "new"
-                        ? "Enter your requirements details here"
-                        : "Requirement content loaded (read-only)"
-                    }
-                    required={chosenRequirementId === "new"}
-                    readOnly={chosenRequirementId !== "new"}
-                  />
-                </div>
-                <div className={styles.inputWrapper}>
-                  <label className={`${styles.inputLabel} ${styles.optional}`}>
-                    Custom GPT instructions (Optional)
-                  </label>
-                  <input
-                    type="text"
-                    className={styles.customPromptInput}
-                    value={customPrompt}
-                    onChange={(e) => setCustomPrompt(e.target.value)}
-                    placeholder="Specific instructions for processing this requirement"
-                  />
-                </div>
-                <div className={styles.submitButtonWrapper}>
-                  <button
-                    type="button"
-                    onClick={handleTextSubmit}
-                    disabled={loading}
-                    className={styles.submitButton}
-                  >
-                    {loading ? (
-                      <>
-                        <span className={styles.loading}></span>
-                        Processing...
-                      </>
-                    ) : (
-                      "Create Domain Objects"
-                    )}
-                  </button>
-                </div>
-              </div>
-            )}
-
-            {selectedTab === "file" && (
-              <div className={styles.formContents}>
-                <div className={styles.inputWrapper}>
-                  <label
-                    htmlFor="fileInputUploader"
-                    className={styles.inputLabel}
-                  >
-                    PDF document
-                  </label>
-                  <div className={styles.fileUploadContainer}>
-                    <input
-                      type="file"
-                      id="fileInputUploader"
-                      accept=".pdf"
-                      onChange={onFileChange}
-                      className={styles.fileInput}
-                      disabled={loading}
-                      required
-                    />
-                    <div
-                      className={`${styles.fileUploadBox} ${
-                        loading ? styles.fileUploadBoxDisabled : ""
-                      }`}
-                    >
-                      {file ? (
-                        <div className={styles.selectedFile}>
-                          <PDFIcon />
-                          {file.name}
-                        </div>
-                      ) : (
-                        <div className={styles.fileUploadPrompt}>
-                          <span>Click to select or drop a PDF file here</span>
-                          <span className={styles.fileLimit}>(Max 10MB)</span>
-                        </div>
-                      )}
-                    </div>
                   </div>
                 </div>
-                <div className={styles.inputWrapper}>
-                  <label className={`${styles.inputLabel} ${styles.optional}`}>
-                    Custom GPT instructions (Optional)
-                  </label>
-                  <input
-                    type="text"
-                    className={styles.customPromptInput}
-                    value={customPrompt}
-                    onChange={(e) => setCustomPrompt(e.target.value)}
-                    placeholder="Specific instructions for processing this requirement"
-                  />
-                </div>
-                <div className={styles.submitButtonWrapper}>
-                  <button
-                    type="button"
-                    onClick={handleFileSubmit}
-                    disabled={loading || !file}
-                    className={styles.submitButton}
-                  >
-                    {loading ? (
-                      <>
-                        <span className={styles.loading}></span>
-                        Processing...
-                      </>
-                    ) : (
-                      "Create Domain Objects"
-                    )}
-                  </button>
-                </div>
-              </div>
+
+                {chosenRequirementId === "new" && (
+                  <>
+                    <div className={styles.inputWrapper}>
+                      <label
+                        htmlFor="newReqTitle"
+                        className={styles.inputLabel}
+                      >
+                        Requirement Title
+                      </label>
+                      <input
+                        type="text"
+                        id="newReqTitle"
+                        className={styles.customPromptInput}
+                        value={newRequirementTitle}
+                        onChange={(e) => setNewRequirementTitle(e.target.value)}
+                        placeholder="Enter title for the new requirement"
+                        required
+                      />
+                    </div>
+                    <div className={styles.inputWrapper}>
+                      <label
+                        htmlFor="newReqDesc"
+                        className={`${styles.inputLabel} ${styles.optional}`}
+                      >
+                        Description (Optional)
+                      </label>
+                      <textarea
+                        id="newReqDesc"
+                        className={`${styles.textarea} ${styles.requirementDescriptionDisplay}`}
+                        value={newRequirementDescription}
+                        onChange={(e) =>
+                          setNewRequirementDescription(e.target.value)
+                        }
+                        placeholder="Enter description for the new requirement (optional)"
+                        rows={3}
+                      />
+                    </div>
+                  </>
+                )}
+
+                {chosenRequirementId !== "new" && (
+                  <>
+                    <div
+                      className={styles.inputWrapper}
+                      style={{ marginTop: "0.5rem" }}
+                    >
+                      <label className={styles.inputLabel}>
+                        Requirement Description
+                      </label>
+                      <textarea
+                        className={`${styles.textarea} ${styles.textareaReadOnly} ${styles.requirementDescriptionDisplay}`}
+                        value={selectedReqDescription}
+                        placeholder={
+                          "No description provided for selected requirement."
+                        }
+                        readOnly
+                        rows={3}
+                      />
+                    </div>
+                  </>
+                )}
+
+                {selectedTab === "text" && (
+                  <div className={styles.formContents}>
+                    <div className={styles.inputWrapper}>
+                      <label className={styles.inputLabel}>
+                        Requirements specification
+                      </label>
+                      <textarea
+                        className={`${styles.textarea} ${
+                          chosenRequirementId !== "new"
+                            ? styles.textareaReadOnly
+                            : ""
+                        }`}
+                        value={description}
+                        onChange={(e) => setDescription(e.target.value)}
+                        placeholder={
+                          chosenRequirementId === "new"
+                            ? "Enter your requirements details here"
+                            : "Requirement content loaded (read-only)"
+                        }
+                        required={chosenRequirementId === "new"}
+                        readOnly={chosenRequirementId !== "new"}
+                      />
+                    </div>
+                    <div className={styles.inputWrapper}>
+                      <label
+                        className={`${styles.inputLabel} ${styles.optional}`}
+                      >
+                        Custom GPT instructions (Optional)
+                      </label>
+                      <input
+                        type="text"
+                        className={styles.customPromptInput}
+                        value={customPrompt}
+                        onChange={(e) => setCustomPrompt(e.target.value)}
+                        placeholder="Specific instructions for processing this requirement"
+                      />
+                    </div>
+                    <div className={styles.submitButtonWrapper}>
+                      <button
+                        type="button"
+                        onClick={handleTextSubmit}
+                        disabled={loading}
+                        className={styles.submitButton}
+                      >
+                        {loading ? (
+                          <>
+                            <span className={styles.loading}></span>
+                            Processing...
+                          </>
+                        ) : (
+                          "Create Domain Objects"
+                        )}
+                      </button>
+                    </div>
+                  </div>
+                )}
+
+                {selectedTab === "file" && (
+                  <div className={styles.formContents}>
+                    <div className={styles.inputWrapper}>
+                      <label
+                        htmlFor="fileInputUploader"
+                        className={styles.inputLabel}
+                      >
+                        PDF document
+                      </label>
+                      <div className={styles.fileUploadContainer}>
+                        <input
+                          type="file"
+                          id="fileInputUploader"
+                          accept=".pdf"
+                          onChange={onFileChange}
+                          className={styles.fileInput}
+                          disabled={loading}
+                          required
+                        />
+                        <div
+                          className={`${styles.fileUploadBox} ${
+                            loading ? styles.fileUploadBoxDisabled : ""
+                          }`}
+                        >
+                          {file ? (
+                            <div className={styles.selectedFile}>
+                              <PDFIcon />
+                              {file.name}
+                            </div>
+                          ) : (
+                            <div className={styles.fileUploadPrompt}>
+                              <span>
+                                Click to select or drop a PDF file here
+                              </span>
+                              <span className={styles.fileLimit}>
+                                (Max 10MB)
+                              </span>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                    <div className={styles.inputWrapper}>
+                      <label
+                        className={`${styles.inputLabel} ${styles.optional}`}
+                      >
+                        Custom GPT instructions (Optional)
+                      </label>
+                      <input
+                        type="text"
+                        className={styles.customPromptInput}
+                        value={customPrompt}
+                        onChange={(e) => setCustomPrompt(e.target.value)}
+                        placeholder="Specific instructions for processing this requirement"
+                      />
+                    </div>
+                    <div className={styles.submitButtonWrapper}>
+                      <button
+                        type="button"
+                        onClick={handleFileSubmit}
+                        disabled={loading || !file}
+                        className={styles.submitButton}
+                      >
+                        {loading ? (
+                          <>
+                            <span className={styles.loading}></span>
+                            Processing...
+                          </>
+                        ) : (
+                          "Create Domain Objects"
+                        )}
+                      </button>
+                    </div>
+                  </div>
+                )}
+
+                {error && <p className={styles.error}>{error}</p>}
+              </>
             )}
 
-            {error && <p className={styles.error}>{error}</p>}
-          </>
-        )}
+            {activeView === "results" && (
+              <div className={styles.resultsView}>
+                {error && <p className={styles.error}>{error}</p>}
 
-        {activeView === "results" && (
-          <div className={styles.resultsView}>
-            {error && <p className={styles.error}>{error}</p>}
-
-            {Object.keys(domainObjects).length > 0 && (
-              <div className={styles.results}>
-                <h2>Domain Objects:</h2>
-                <table className={styles.domainTable}>
-                  <thead>
-                    <tr>
-                      <th>Domain Object</th>
-                      <th>Attributes</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {Object.entries(domainObjects).map(
-                      ([domain, attributes], index) => (
-                        <tr
-                          key={`domain-${index}`}
-                          className={styles.domainRow}
-                        >
-                          {editingDomain === domain ? (
-                            <>
-                              <td>
-                                <input
-                                  type="text"
-                                  value={editingName}
-                                  onChange={(e) =>
-                                    setEditingName(e.target.value)
-                                  }
-                                  className={styles.editInput}
-                                />
-                              </td>
-                              <td>
-                                <div className={styles.attributesList}>
-                                  {editingAttributes.map(renderAttributeItem)}
-                                  <button
-                                    type="button"
-                                    className={styles.addAttributeButton}
-                                    onClick={handleAddAttribute}
-                                  >
-                                    <span className={styles.addButtonText}>
-                                      + Add
+                {Object.keys(domainObjects).length > 0 && (
+                  <div className={styles.results}>
+                    <h2>Domain Objects:</h2>
+                    <table className={styles.domainTable}>
+                      <thead>
+                        <tr>
+                          <th>Domain Object</th>
+                          <th>Attributes</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {Object.entries(domainObjects).map(
+                          ([domain, attributes], index) => (
+                            <tr
+                              key={`domain-${index}`}
+                              className={styles.domainRow}
+                            >
+                              {editingDomain === domain ? (
+                                <>
+                                  <td>
+                                    <input
+                                      type="text"
+                                      value={editingName}
+                                      onChange={(e) =>
+                                        setEditingName(e.target.value)
+                                      }
+                                      className={styles.editInput}
+                                    />
+                                  </td>
+                                  <td>
+                                    <div className={styles.attributesList}>
+                                      {editingAttributes.map(
+                                        renderAttributeItem
+                                      )}
+                                      <button
+                                        type="button"
+                                        className={styles.addAttributeButton}
+                                        onClick={handleAddAttribute}
+                                      >
+                                        <span className={styles.addButtonText}>
+                                          + Add
+                                        </span>
+                                      </button>
+                                    </div>
+                                    <div className={styles.editActions}>
+                                      <UploaderSaveIcon
+                                        onClick={handleSaveEdit}
+                                      />
+                                      <UploaderCancelIcon
+                                        onClick={handleCancelEdit}
+                                      />
+                                    </div>
+                                  </td>
+                                </>
+                              ) : (
+                                <>
+                                  <td>{domain}</td>
+                                  <td>
+                                    {attributes.length > 0
+                                      ? attributes.join(", ")
+                                      : "No attributes"}
+                                    <span
+                                      style={{
+                                        position: "absolute",
+                                        right: "12px",
+                                        top: "50%",
+                                        transform: "translateY(-50%)",
+                                        display: "flex",
+                                        gap: "8px",
+                                        zIndex: 1,
+                                      }}
+                                    >
+                                      <UploaderEditIcon
+                                        onClick={() =>
+                                          handleEditDomain(domain, attributes)
+                                        }
+                                      />
+                                      <UploaderDeleteIcon
+                                        onClick={() =>
+                                          toggleDomainObject(domain)
+                                        }
+                                      />
                                     </span>
-                                  </button>
-                                </div>
-                                <div className={styles.editActions}>
-                                  <UploaderSaveIcon onClick={handleSaveEdit} />
-                                  <UploaderCancelIcon
-                                    onClick={handleCancelEdit}
-                                  />
-                                </div>
-                              </td>
-                            </>
-                          ) : (
-                            <>
+                                  </td>
+                                </>
+                              )}
+                            </tr>
+                          )
+                        )}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+
+                {Object.keys(suggestedDomainObjects).length > 0 && (
+                  <div className={styles.results}>
+                    <h2>Suggested Domain Objects:</h2>
+                    <table className={styles.domainTable}>
+                      <thead>
+                        <tr>
+                          <th>Domain Object</th>
+                          <th>Attributes</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {Object.entries(suggestedDomainObjects).map(
+                          ([domain, attributes], index) => (
+                            <tr
+                              key={`suggested-${index}`}
+                              className={`${styles.domainRow} ${styles.suggestedRow}`}
+                            >
                               <td>{domain}</td>
                               <td>
                                 {attributes.length > 0
@@ -938,161 +1017,110 @@ const UseCaseUploader: React.FC = () => {
                                     zIndex: 1,
                                   }}
                                 >
-                                  <UploaderEditIcon
-                                    onClick={() =>
-                                      handleEditDomain(domain, attributes)
-                                    }
+                                  <AddIcon
+                                    onClick={() => {
+                                      setDomainObjects((prev) => ({
+                                        ...prev,
+                                        [domain]: attributes,
+                                      }));
+                                      setSuggestedDomainObjects((prev) => {
+                                        const newState = { ...prev };
+                                        delete newState[domain];
+                                        return newState;
+                                      });
+                                    }}
                                   />
-                                  <UploaderDeleteIcon
+                                </span>
+                              </td>
+                            </tr>
+                          )
+                        )}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+
+                {Object.keys(removedDomainObjects).length > 0 && (
+                  <div className={styles.results}>
+                    <h2>Removed Domain Objects:</h2>
+                    <table className={styles.domainTable}>
+                      <thead>
+                        <tr>
+                          <th>Domain Object</th>
+                          <th>Attributes</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {Object.entries(removedDomainObjects).map(
+                          ([domain, attributes], index) => (
+                            <tr
+                              key={`removed-${index}`}
+                              className={`${styles.domainRow} ${styles.removedRow}`}
+                            >
+                              <td>{domain}</td>
+                              <td>
+                                {attributes.length > 0
+                                  ? attributes.join(", ")
+                                  : "No attributes"}
+                                <span
+                                  style={{
+                                    position: "absolute",
+                                    right: "12px",
+                                    top: "50%",
+                                    transform: "translateY(-50%)",
+                                    display: "flex",
+                                    gap: "8px",
+                                    zIndex: 1,
+                                  }}
+                                >
+                                  <AddIcon
                                     onClick={() => toggleDomainObject(domain)}
                                   />
                                 </span>
                               </td>
-                            </>
-                          )}
-                        </tr>
-                      )
-                    )}
-                  </tbody>
-                </table>
-              </div>
-            )}
-
-            {Object.keys(suggestedDomainObjects).length > 0 && (
-              <div className={styles.results}>
-                <h2>Suggested Domain Objects:</h2>
-                <table className={styles.domainTable}>
-                  <thead>
-                    <tr>
-                      <th>Domain Object</th>
-                      <th>Attributes</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {Object.entries(suggestedDomainObjects).map(
-                      ([domain, attributes], index) => (
-                        <tr
-                          key={`suggested-${index}`}
-                          className={`${styles.domainRow} ${styles.suggestedRow}`}
-                        >
-                          <td>{domain}</td>
-                          <td>
-                            {attributes.length > 0
-                              ? attributes.join(", ")
-                              : "No attributes"}
-                            <span
-                              style={{
-                                position: "absolute",
-                                right: "12px",
-                                top: "50%",
-                                transform: "translateY(-50%)",
-                                display: "flex",
-                                gap: "8px",
-                                zIndex: 1,
-                              }}
-                            >
-                              <AddIcon
-                                onClick={() => {
-                                  setDomainObjects((prev) => ({
-                                    ...prev,
-                                    [domain]: attributes,
-                                  }));
-                                  setSuggestedDomainObjects((prev) => {
-                                    const newState = { ...prev };
-                                    delete newState[domain];
-                                    return newState;
-                                  });
-                                }}
-                              />
-                            </span>
-                          </td>
-                        </tr>
-                      )
-                    )}
-                  </tbody>
-                </table>
-              </div>
-            )}
-
-            {Object.keys(removedDomainObjects).length > 0 && (
-              <div className={styles.results}>
-                <h2>Removed Domain Objects:</h2>
-                <table className={styles.domainTable}>
-                  <thead>
-                    <tr>
-                      <th>Domain Object</th>
-                      <th>Attributes</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {Object.entries(removedDomainObjects).map(
-                      ([domain, attributes], index) => (
-                        <tr
-                          key={`removed-${index}`}
-                          className={`${styles.domainRow} ${styles.removedRow}`}
-                        >
-                          <td>{domain}</td>
-                          <td>
-                            {attributes.length > 0
-                              ? attributes.join(", ")
-                              : "No attributes"}
-                            <span
-                              style={{
-                                position: "absolute",
-                                right: "12px",
-                                top: "50%",
-                                transform: "translateY(-50%)",
-                                display: "flex",
-                                gap: "8px",
-                                zIndex: 1,
-                              }}
-                            >
-                              <AddIcon
-                                onClick={() => toggleDomainObject(domain)}
-                              />
-                            </span>
-                          </td>
-                        </tr>
-                      )
-                    )}
-                  </tbody>
-                </table>
-              </div>
-            )}
-
-            <div className={styles.addObjectContainer}>
-              <input
-                type="text"
-                value={newDomainObject}
-                onChange={(e) => setNewDomainObject(e.target.value)}
-                placeholder="Add new domain object..."
-                className={styles.addObjectInput}
-              />
-              <button
-                onClick={addDomainObject}
-                className={styles.addObjectButton}
-              >
-                Add
-              </button>
-            </div>
-
-            {Object.keys(domainObjects).length > 0 && (
-              <button
-                className={styles.finalizeButton}
-                disabled={loading || savingDomainObjects}
-                onClick={handleFinalizeDomainObjects}
-              >
-                {savingDomainObjects ? (
-                  <>
-                    <span className={styles.loading}></span>
-                    Saving Domain Objects...
-                  </>
-                ) : (
-                  "Save Domain Objects"
+                            </tr>
+                          )
+                        )}
+                      </tbody>
+                    </table>
+                  </div>
                 )}
-              </button>
+
+                <div className={styles.addObjectContainer}>
+                  <input
+                    type="text"
+                    value={newDomainObject}
+                    onChange={(e) => setNewDomainObject(e.target.value)}
+                    placeholder="Add new domain object..."
+                    className={styles.addObjectInput}
+                  />
+                  <button
+                    onClick={addDomainObject}
+                    className={styles.addObjectButton}
+                  >
+                    Add
+                  </button>
+                </div>
+
+                {Object.keys(domainObjects).length > 0 && (
+                  <button
+                    className={styles.finalizeButton}
+                    disabled={loading || savingDomainObjects}
+                    onClick={handleFinalizeDomainObjects}
+                  >
+                    {savingDomainObjects ? (
+                      <>
+                        <span className={styles.loading}></span>
+                        Saving Domain Objects...
+                      </>
+                    ) : (
+                      "Save Domain Objects"
+                    )}
+                  </button>
+                )}
+              </div>
             )}
-          </div>
+          </>
         )}
       </div>
     </div>

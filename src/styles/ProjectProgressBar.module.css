@@ -46,7 +46,7 @@
 
 .stepLabel {
   font-size: 0.9rem;
-  color: rgb(26, 24, 24);
+  color: rgb(0, 0, 0);
   font-weight: 600;
   text-align: center;
   transition: all 0.3s ease;
@@ -72,7 +72,7 @@
 }
 
 .step.completed .stepLabel {
-  color: rgb(26, 24, 24);
+  color: rgb(0, 0, 0);
   font-weight: 600;
 }
 
@@ -81,15 +81,15 @@
 }
 
 .step.active .stepCircle {
-  background-color: rgb(250, 250, 250);
+  background-color: rgb(204, 219, 236);
   border-color: #1e4976;
   border-width: 2px;
   color: rgb(18, 45, 73);
-  box-shadow: 0 0 0 3px rgba(30, 73, 118, 0.3), 0 2px 8px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 0 0 5px rgba(30, 73, 118, 0.3), 0 2px 8px rgba(0, 0, 0, 0.15);
 }
 
 .step.active .stepLabel {
-  color: rgb(18, 45, 73);
+  color: rgb(0, 0, 0);
   font-weight: 600;
 }
 

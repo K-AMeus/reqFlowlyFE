@@ -1272,12 +1272,12 @@
 
 .metadataHeader {
   display: flex;
-  justify-content: space-between;
   align-items: center;
   margin-bottom: 1.5rem;
   padding-bottom: 1.5rem;
   border-bottom: 1px solid rgba(30, 73, 118, 0.1);
   width: 100%;
+  gap: 1.5rem;
 }
 
 .metadataHeader h1 {
@@ -1286,6 +1286,11 @@
   margin: 0;
   font-weight: 600;
   text-align: left;
+  flex-shrink: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 50%;
 }
 
 .metadataHeader .projectTitleContainer {
@@ -1810,4 +1815,59 @@
   outline: none;
   border-color: #1e4976;
   box-shadow: 0 0 0 2px rgba(30, 73, 118, 0.1);
+}
+
+.useCasesHeader {
+  margin-bottom: 1rem;
+  border-bottom: 1px solid rgba(30, 73, 118, 0.1);
+  padding-bottom: 0.75rem;
+}
+
+.useCasesHeader h1 {
+  font-size: 1.8rem;
+  font-weight: 600;
+  color: #0a1929;
+  margin: 0 0 0.5rem 0;
+}
+
+.useCasesDescription {
+  font-size: 1rem;
+  color: #546e7a;
+  margin: 0 0 0.5rem 0;
+}
+
+.useCasesContent {
+  padding: 1.5rem;
+  width: 100%;
+}
+
+.headerDates {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  margin-left: auto;
+}
+
+.headerDates .metadataItem {
+  flex-direction: row;
+  align-items: baseline;
+  gap: 0.5rem;
+}
+
+.headerDates .metadataLabel {
+  font-size: 0.8rem;
+  color: #333;
+  text-transform: none;
+  font-weight: 500;
+}
+
+.headerDates .metadataValue {
+  font-size: 0.85rem;
+  color: #546e7a;
+}
+
+.metadataHeader .projectActions {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
 }

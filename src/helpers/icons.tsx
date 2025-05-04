@@ -348,26 +348,34 @@ export const RequirementDeleteIcon = ({
 
 export const SaveIcon = ({
   onClick,
+  isLoading,
 }: {
-  onClick: (e: React.MouseEvent) => void;
+  onClick?: (e: React.MouseEvent) => void | Promise<void>;
+  isLoading?: boolean;
 }) => (
   <div
-    className={requirementStyles.saveIcon}
-    onClick={onClick}
-    title="Save changes"
+    className={`${requirementStyles.saveIcon} ${
+      isLoading ? requirementStyles.saveIconDisabled : ""
+    }`}
+    onClick={!isLoading ? onClick : undefined}
+    title={isLoading ? "Saving..." : "Save changes"}
   >
-    <svg
-      width="18"
-      height="18"
-      viewBox="0 0 24 24"
-      fill="none"
-      xmlns="http://www.w3.org/2000/svg"
-    >
-      <path
-        d="M9 16.2L4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4L9 16.2z"
-        fill="#ffffff"
-      />
-    </svg>
+    {isLoading ? (
+      <div className={requirementStyles.saveIconSpinner}></div>
+    ) : (
+      <svg
+        width="18"
+        height="18"
+        viewBox="0 0 24 24"
+        fill="none"
+        xmlns="http://www.w3.org/2000/svg"
+      >
+        <path
+          d="M9 16.2L4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4L9 16.2z"
+          fill="#ffffff"
+        />
+      </svg>
+    )}
   </div>
 );
 

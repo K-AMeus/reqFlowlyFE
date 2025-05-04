@@ -4,6 +4,7 @@ import {
   Routes,
   Route,
   Navigate,
+  useParams,
 } from "react-router-dom";
 import Header from "./components/Header";
 import Footer from "./components/Footer";
@@ -11,6 +12,7 @@ import Login from "./components/Login";
 import LandingPage from "./components/LandingPage";
 import ProjectList from "./components/ProjectList";
 import Project from "./components/Project";
+import DomainObjectUseCases from "./components/DomainObjectUseCases";
 import ToastContainer from "./components/ToastContainer";
 import { AuthProvider, useAuth } from "./context/AuthContext";
 import ScrollToTop from "./hooks/ScrollToTop";
@@ -76,6 +78,14 @@ const AppRoutes = () => {
             }
           />
           <Route
+            path="/projects/:projectId/requirements/:requirementId/use-cases"
+            element={
+              <ProtectedRoute>
+                <DomainObjectUseCasesRouteWrapper />
+              </ProtectedRoute>
+            }
+          />
+          <Route
             path="/projects/:projectId/test-cases"
             element={
               <ProtectedRoute>
@@ -88,6 +98,18 @@ const AppRoutes = () => {
       </main>
       <Footer />
     </>
+  );
+};
+
+const DomainObjectUseCasesRouteWrapper = () => {
+  const { projectId, requirementId } = useParams();
+
+  if (!projectId || !requirementId) {
+    return <Navigate to="/projects" replace />;
+  }
+
+  return (
+    <DomainObjectUseCases projectId={projectId} requirementId={requirementId} />
   );
 };
 

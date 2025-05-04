@@ -4,11 +4,12 @@ import sidebarStyles from "../styles/ProjectSidebar.module.css";
 import UseCaseUploader from "./UseCaseUploader";
 import ProjectSidebar from "./ProjectSidebar";
 import RequirementsList from "./RequirementsList";
+import UsedRequirementsList from "./UsedRequirementsList";
 import ProjectProgressBar from "./ProjectProgressBar";
 import { useAuth } from "../context/AuthContext";
 import { useParams, useNavigate } from "react-router-dom";
 import { EditIcon, DeleteIcon } from "../helpers/icons";
-import { formatDate, formatTimeAgo } from "../helpers/dateUtils";
+import { formatTimeAgo } from "../helpers/dateUtils";
 import { navigateTo } from "../helpers/navigationUtils";
 import { createAuthenticatedRequest } from "../helpers/apiUtils";
 import axios from "axios";
@@ -218,6 +219,24 @@ const Project: React.FC<ProjectComponentProps> = ({
                   {!isInlineEditing ? (
                     <>
                       <h1>{selectedProject.name}</h1>
+                      <div className={styles.headerDates}>
+                        <div className={styles.metadataItem}>
+                          <span className={styles.metadataLabel}>Created:</span>
+                          <span className={styles.metadataValue}>
+                            {selectedProject.createdAt
+                              ? formatTimeAgo(selectedProject.createdAt)
+                              : "N/A"}
+                          </span>
+                        </div>
+                        <div className={styles.metadataItem}>
+                          <span className={styles.metadataLabel}>Updated:</span>
+                          <span className={styles.metadataValue}>
+                            {selectedProject.updatedAt
+                              ? formatTimeAgo(selectedProject.updatedAt)
+                              : "N/A"}
+                          </span>
+                        </div>
+                      </div>
                       <div className={styles.projectActions}>
                         <EditIcon onClick={handleEditClick} />
                         <DeleteIcon onClick={handleDeleteClick} />
@@ -307,28 +326,6 @@ const Project: React.FC<ProjectComponentProps> = ({
                     />
                   )}
                 </div>
-                <div className={styles.metadataSection}>
-                  <h3>Details</h3>
-                  <div className={styles.metadataGrid}>
-                    <div className={styles.metadataItem}>
-                      <span className={styles.metadataLabel}>Created</span>
-                      <span className={styles.metadataValue}>
-                        {formatDate(selectedProject.createdAt)}
-                      </span>
-                    </div>
-                    <div
-                      className={styles.metadataItem}
-                      style={{ marginLeft: "auto" }}
-                    >
-                      <span className={styles.metadataLabel}>Last Updated</span>
-                      <span className={styles.metadataValue}>
-                        {selectedProject.updatedAt
-                          ? formatTimeAgo(selectedProject.updatedAt)
-                          : "N/A"}
-                      </span>
-                    </div>
-                  </div>
-                </div>
 
                 <div className={styles.requirementsWrapper}>
                   <RequirementsList projectId={selectedProject.id} />
@@ -348,10 +345,17 @@ const Project: React.FC<ProjectComponentProps> = ({
       case "use-cases":
         return (
           <div className={styles.useCasesContent}>
-            <div className={styles.comingSoon}>
-              <div className={styles.comingSoonIcon}>🚧</div>
-              <h3>Coming Soon</h3>
-              <p>Use case generation is under development.</p>
+            <div className={styles.unifiedContentContainer}>
+              <div className={styles.metadataCard}>
+                <div className={styles.useCasesHeader}>
+                  <h1>Domain Objects</h1>
+                  <p className={styles.useCasesDescription}>
+                    View and manage domain objects that have been generated from
+                    requirements
+                  </p>
+                </div>
+                <UsedRequirementsList projectId={selectedProject.id} />
+              </div>
             </div>
           </div>
         );

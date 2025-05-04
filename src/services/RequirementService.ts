@@ -58,7 +58,6 @@ export class RequirementService {
     this.api = api;
   }
 
-
   async createTextRequirement(
     projectId: string,
     reqData: TextRequirementCreateDto
@@ -111,6 +110,23 @@ export class RequirementService {
   ): Promise<RequirementsPageResponse> {
     const response = await this.api.get(
       `${this.BASE_URL}/${projectId}/requirements`,
+      {
+        params: {
+          page,
+          size,
+        },
+      }
+    );
+    return response.data;
+  }
+
+  async getUsedRequirements(
+    projectId: string,
+    page = 0,
+    size = 9
+  ): Promise<RequirementsPageResponse> {
+    const response = await this.api.get(
+      `${this.BASE_URL}/${projectId}/requirements/used`,
       {
         params: {
           page,

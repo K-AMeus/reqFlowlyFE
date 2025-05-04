@@ -143,11 +143,12 @@ export class DomainObjectService {
     return response.data;
   }
 
-  async getAllDomainObjectsWithAttributes(
-    projectId: string
+  async getDomainObjectsWithAttributesByRequirement(
+    projectId: string,
+    requirementId: string
   ): Promise<DomainObjectsWithAttributesResponseDto> {
     const response = await this.api.get(
-      `${this.BASE_URL}/${projectId}/domain-objects`
+      `${this.BASE_URL}/${projectId}/requirements/${requirementId}/domain-objects`
     );
     return response.data;
   }

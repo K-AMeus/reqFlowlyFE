@@ -7,7 +7,7 @@ import {
   RequirementDto,
   RequirementService,
 } from "../services/RequirementService";
-import { formatDate, formatTimeAgo } from "../helpers/dateUtils";
+import { formatTimeAgo } from "../helpers/dateUtils";
 import { showGlobalToast } from "../helpers/toastUtils";
 import {
   ChevronLeft,
@@ -17,6 +17,7 @@ import {
   RequirementEditIcon,
   RequirementDeleteIcon,
   CancelIcon,
+  SaveIcon,
 } from "../helpers/icons";
 import { useNavigate } from "react-router-dom";
 
@@ -410,13 +411,16 @@ const RequirementsList: React.FC<RequirementsListProps> = ({
   };
 
   const handleCreateDomainObject = () => {
-    if (selectedRequirementId && projectId) {
+    const reqId =
+      viewMode === "detail" ? selectedRequirement?.id : selectedRequirementId;
+
+    if (reqId && projectId) {
       navigate(`/projects/${projectId}/domain-objects`, {
-        state: { selectedRequirementId },
+        state: { selectedRequirementId: reqId },
       });
     } else {
       console.warn(
-        "Create domain object clicked without a selected requirement or project ID"
+        "Create domain object clicked without a selected requirement ID or project ID"
       );
     }
   };
@@ -508,48 +512,16 @@ const RequirementsList: React.FC<RequirementsListProps> = ({
 
     return (
       <div className={styles.requirementDetail}>
-        <div className={styles.requirementActions}>
-          <button className={styles.backButton} onClick={handleBackToList}>
-            ← Back to Requirements
+        <div className={styles.detailHeaderActions}>
+          <button className={styles.actionButton} onClick={handleBackToList}>
+            <ChevronLeft /> Back to Requirements
           </button>
-          <div className={styles.actionIcons}>
-            {!isEditingDetail ? (
-              <>
-                <RequirementEditIcon onClick={handleDetailEditClick} />
-                <RequirementDeleteIcon
-                  onClick={(e) => handleDeleteClick(e, selectedRequirement)}
-                />
-              </>
-            ) : (
-              <>
-                <div
-                  className={`${styles.saveIcon} ${
-                    isSaving ? styles.saveIconDisabled : ""
-                  }`}
-                  onClick={!isSaving ? handleSaveDetailEdit : undefined}
-                  title="Save changes"
-                >
-                  {isSaving ? (
-                    <div className={styles.saveIconSpinner}></div>
-                  ) : (
-                    <svg
-                      width="18"
-                      height="18"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      xmlns="http://www.w3.org/2000/svg"
-                    >
-                      <path
-                        d="M9 16.2L4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4L9 16.2z"
-                        fill="#ffffff"
-                      />
-                    </svg>
-                  )}
-                </div>
-                <CancelIcon onClick={handleCancelClick} />
-              </>
-            )}
-          </div>
+          <button
+            className={styles.actionButton}
+            onClick={handleCreateDomainObject}
+          >
+            Create Domain Objects <ChevronRight />
+          </button>
         </div>
 
         {error && isEditingDetail && (
@@ -574,9 +546,20 @@ const RequirementsList: React.FC<RequirementsListProps> = ({
               required
             />
           )}
-          <div className={styles.requirementMeta}>
-            <span>Created: {formatDate(selectedRequirement.createdAt)}</span>
-            <span>Updated: {formatTimeAgo(selectedRequirement.updatedAt)}</span>
+          <div className={styles.actionIcons}>
+            {!isEditingDetail ? (
+              <>
+                <RequirementEditIcon onClick={handleDetailEditClick} />
+                <RequirementDeleteIcon
+                  onClick={(e) => handleDeleteClick(e, selectedRequirement)}
+                />
+              </>
+            ) : (
+              <>
+                <SaveIcon isLoading={isSaving} onClick={handleSaveDetailEdit} />
+                <CancelIcon onClick={handleCancelClick} />
+              </>
+            )}
           </div>
         </div>
 
@@ -746,7 +729,10 @@ const RequirementsList: React.FC<RequirementsListProps> = ({
               )}
 
               <div className={styles.requirementCardFooter}>
-                <span>Created: {formatDate(requirement.createdAt)}</span>
+                <span className={styles.requirementDateCard}>
+                  <span className={styles.footerLabel}>Updated: </span>
+                  {formatTimeAgo(requirement.updatedAt)}
+                </span>
               </div>
             </div>
           ))}

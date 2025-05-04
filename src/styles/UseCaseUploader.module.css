@@ -1318,3 +1318,30 @@ tr.suggestedRow td {
   min-height: auto;
   height: auto;
 }
+
+.loadingContainer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 4rem 0;
+  color: #ffffff;
+  font-weight: 500;
+  min-height: 200px;
+}
+
+.spinner {
+  width: 2.5rem;
+  height: 2.5rem;
+  border: 3px solid rgba(77, 137, 196, 0.3);
+  border-radius: 50%;
+  border-top-color: #4d89c4;
+  animation: spin 1s linear infinite;
+  margin-bottom: 1rem;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
