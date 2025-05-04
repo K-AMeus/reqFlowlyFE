@@ -78,6 +78,14 @@ const AppRoutes = () => {
             }
           />
           <Route
+            path="/projects/:projectId/use-cases/:requirementId"
+            element={
+              <ProtectedRoute>
+                <Project initialView="use-cases" />
+              </ProtectedRoute>
+            }
+          />
+          <Route
             path="/projects/:projectId/requirements/:requirementId/use-cases"
             element={
               <ProtectedRoute>

@@ -720,13 +720,21 @@ const RequirementsList: React.FC<RequirementsListProps> = ({
                 </span>
               </div>
 
-              {requirement.description && (
-                <p className={styles.requirementDescription}>
-                  {requirement.description.length > 100
-                    ? `${requirement.description.substring(0, 100)}...`
-                    : requirement.description}
-                </p>
-              )}
+              <div className={styles.requirementCardContent}>
+                {requirement.description ? (
+                  <p className={styles.requirementDescription}>
+                    {requirement.description.length > 100
+                      ? `${requirement.description.substring(0, 100)}...`
+                      : requirement.description}
+                  </p>
+                ) : (
+                  <p
+                    className={`${styles.requirementDescription} ${styles.previewEmpty}`}
+                  >
+                    No description provided for this requirement
+                  </p>
+                )}
+              </div>
 
               <div className={styles.requirementCardFooter}>
                 <span className={styles.requirementDateCard}>

@@ -1,23 +1,33 @@
 import React, { useState, useEffect } from "react";
+import ReactDOM from "react-dom";
 import { useNavigate } from "react-router-dom";
 import styles from "../styles/DomainObjectUseCases.module.css";
 import { useAuth } from "../context/AuthContext";
 import { createAuthenticatedRequest } from "../helpers/apiUtils";
 import { DomainObjectAttributeDto } from "../services/DomainObjectService";
-import { UseCaseCreateResDto } from "../services/UseCaseService";
-import { ChevronLeft, ChevronRight } from "../helpers/icons";
+import { UseCaseCreateResDto, UseCaseDto } from "../services/UseCaseService";
+import {
+  ChevronLeft,
+  ChevronRight,
+  RequirementEditIcon,
+  RequirementDeleteIcon,
+  SaveIcon,
+  CancelIcon,
+} from "../helpers/icons";
 import { showGlobalToast } from "../helpers/toastUtils";
 
 interface DomainObjectUseCasesProps {
   projectId: string;
   requirementId: string;
   requirementTitle?: string;
+  onClose?: () => void;
 }
 
 const DomainObjectUseCases: React.FC<DomainObjectUseCasesProps> = ({
   projectId,
   requirementId,
   requirementTitle,
+  onClose,
 }) => {
   const [domainObjects, setDomainObjects] = useState<
     Record<string, DomainObjectAttributeDto[]>
@@ -30,6 +40,16 @@ const DomainObjectUseCases: React.FC<DomainObjectUseCasesProps> = ({
   const [generatedUseCases, setGeneratedUseCases] = useState<
     Record<string, UseCaseCreateResDto[]>
   >({});
+  const [editingUseCaseId, setEditingUseCaseId] = useState<string | null>(null);
+  const [editUseCaseData, setEditUseCaseData] = useState<UseCaseDto>({
+    name: "",
+    content: "",
+  });
+  const [isSavingUseCase, setIsSavingUseCase] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [useCaseToDelete, setUseCaseToDelete] =
+    useState<UseCaseCreateResDto | null>(null);
+  const [deleteLoading, setDeleteLoading] = useState(false);
 
   const { currentUser } = useAuth();
   const navigate = useNavigate();
@@ -132,8 +152,98 @@ const DomainObjectUseCases: React.FC<DomainObjectUseCasesProps> = ({
     }
   };
 
+  const handleEditUseCaseClick = (useCase: UseCaseCreateResDto) => {
+    setEditingUseCaseId(useCase.id);
+    setEditUseCaseData({ name: useCase.name, content: useCase.content });
+    setError(null);
+  };
+
+  const handleCancelEditUseCase = () => {
+    setEditingUseCaseId(null);
+    setEditUseCaseData({ name: "", content: "" });
+  };
+
+  const handleSaveUseCase = async () => {
+    if (!editingUseCaseId || !currentDomainObjectName) return;
+
+    setIsSavingUseCase(true);
+    setError(null);
+    try {
+      const api = await createAuthenticatedRequest(currentUser);
+      const updatedUseCase = await api.useCaseService.updateUseCase(
+        projectId,
+        requirementId,
+        editingUseCaseId,
+        editUseCaseData
+      );
+
+      setGeneratedUseCases((prev) => ({
+        ...prev,
+        [currentDomainObjectName]: (prev[currentDomainObjectName] || []).map(
+          (uc) => (uc.id === editingUseCaseId ? updatedUseCase : uc)
+        ),
+      }));
+
+      setEditingUseCaseId(null);
+      showGlobalToast("success", "Use case updated successfully.");
+    } catch (err) {
+      console.error("Error updating use case:", err);
+      setError(`Failed to update use case "${editUseCaseData.name}".`);
+      showGlobalToast("error", "Failed to update use case.");
+    } finally {
+      setIsSavingUseCase(false);
+    }
+  };
+
+  const handleDeleteUseCaseClick = (useCase: UseCaseCreateResDto) => {
+    setUseCaseToDelete(useCase);
+    setShowDeleteConfirm(true);
+    setError(null);
+  };
+
+  const handleCancelDeleteUseCase = () => {
+    setShowDeleteConfirm(false);
+    setUseCaseToDelete(null);
+  };
+
+  const handleConfirmDeleteUseCase = async () => {
+    if (!useCaseToDelete || !currentDomainObjectName) return;
+
+    setDeleteLoading(true);
+    setError(null);
+    try {
+      const api = await createAuthenticatedRequest(currentUser);
+      await api.useCaseService.deleteUseCase(
+        projectId,
+        requirementId,
+        useCaseToDelete.id
+      );
+
+      setGeneratedUseCases((prev) => ({
+        ...prev,
+        [currentDomainObjectName]: (prev[currentDomainObjectName] || []).filter(
+          (uc) => uc.id !== useCaseToDelete.id
+        ),
+      }));
+
+      setShowDeleteConfirm(false);
+      setUseCaseToDelete(null);
+      showGlobalToast("success", "Use case deleted successfully.");
+    } catch (err) {
+      console.error("Error deleting use case:", err);
+      setError(`Failed to delete use case "${useCaseToDelete.name}".`);
+      showGlobalToast("error", "Failed to delete use case.");
+    } finally {
+      setDeleteLoading(false);
+    }
+  };
+
   const handleBackToList = () => {
-    navigate(`/projects/${projectId}/use-cases`);
+    if (onClose) {
+      onClose();
+    } else {
+      navigate(`/projects/${projectId}/use-cases`);
+    }
   };
 
   if (loading) {
@@ -154,7 +264,7 @@ const DomainObjectUseCases: React.FC<DomainObjectUseCasesProps> = ({
       <div className={styles.emptyState}>
         <p>No domain objects found for this requirement.</p>
         <button className={styles.backButton} onClick={handleBackToList}>
-          <ChevronLeft /> Back to Requirements List
+          <ChevronLeft /> {onClose ? "Close" : "Back to Requirements List"}
         </button>
       </div>
     );
@@ -168,7 +278,7 @@ const DomainObjectUseCases: React.FC<DomainObjectUseCasesProps> = ({
     <div className={styles.domainObjectsUseCasesContainer}>
       <div className={styles.topActions}>
         <button className={styles.backButton} onClick={handleBackToList}>
-          <ChevronLeft /> Back to Requirements List
+          <ChevronLeft /> {onClose ? "Back" : "Back to Requirements List"}
         </button>
       </div>
 
@@ -242,8 +352,60 @@ const DomainObjectUseCases: React.FC<DomainObjectUseCasesProps> = ({
           <div className={styles.useCasesList}>
             {currentUseCases.map((useCase) => (
               <div key={useCase.id} className={styles.useCaseItem}>
-                <h4>{useCase.name}</h4>
-                <pre className={styles.useCaseContent}>{useCase.content}</pre>
+                {editingUseCaseId === useCase.id ? (
+                  <div className={styles.useCaseEditForm}>
+                    <div className={styles.editHeader}>
+                      <input
+                        type="text"
+                        value={editUseCaseData.name}
+                        onChange={(e) =>
+                          setEditUseCaseData({
+                            ...editUseCaseData,
+                            name: e.target.value,
+                          })
+                        }
+                        className={styles.editInputName}
+                        placeholder="Use Case Name"
+                      />
+                      <div className={styles.editActions}>
+                        <SaveIcon
+                          isLoading={isSavingUseCase}
+                          onClick={handleSaveUseCase}
+                        />
+                        <CancelIcon onClick={handleCancelEditUseCase} />
+                      </div>
+                    </div>
+                    <textarea
+                      value={editUseCaseData.content}
+                      onChange={(e) =>
+                        setEditUseCaseData({
+                          ...editUseCaseData,
+                          content: e.target.value,
+                        })
+                      }
+                      className={styles.editInputContent}
+                      placeholder="Use Case Content"
+                      rows={6}
+                    />
+                  </div>
+                ) : (
+                  <>
+                    <div className={styles.useCaseHeader}>
+                      <h4>{useCase.name}</h4>
+                      <div className={styles.useCaseActions}>
+                        <RequirementEditIcon
+                          onClick={() => handleEditUseCaseClick(useCase)}
+                        />
+                        <RequirementDeleteIcon
+                          onClick={() => handleDeleteUseCaseClick(useCase)}
+                        />
+                      </div>
+                    </div>
+                    <pre className={styles.useCaseContent}>
+                      {useCase.content}
+                    </pre>
+                  </>
+                )}
               </div>
             ))}
           </div>
@@ -271,6 +433,44 @@ const DomainObjectUseCases: React.FC<DomainObjectUseCasesProps> = ({
           </button>
         </div>
       )}
+
+      {showDeleteConfirm &&
+        useCaseToDelete &&
+        ReactDOM.createPortal(
+          <div className={styles.modalOverlay}>
+            <div className={styles.confirmDialog}>
+              <h3>Delete Use Case?</h3>
+              <p>
+                Are you sure you wish to delete the use case "
+                <strong>{useCaseToDelete.name}</strong>"? This action cannot be
+                undone.
+              </p>
+              <div className={styles.dialogActions}>
+                <button
+                  type="button"
+                  className={styles.cancelButton}
+                  onClick={handleCancelDeleteUseCase}
+                  disabled={deleteLoading}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  className={styles.deleteButton}
+                  onClick={handleConfirmDeleteUseCase}
+                  disabled={deleteLoading}
+                >
+                  {deleteLoading ? (
+                    <span className={styles.buttonSpinnerSmall}></span>
+                  ) : (
+                    "Delete"
+                  )}
+                </button>
+              </div>
+            </div>
+          </div>,
+          document.body
+        )}
     </div>
   );
 };

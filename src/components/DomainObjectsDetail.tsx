@@ -8,13 +8,11 @@ import { showGlobalToast } from "../helpers/toastUtils";
 interface DomainObjectsDetailProps {
   projectId: string;
   requirementId: string;
-  requirementTitle?: string;
 }
 
 const DomainObjectsDetail: React.FC<DomainObjectsDetailProps> = ({
   projectId,
   requirementId,
-  requirementTitle,
 }) => {
   const [domainObjects, setDomainObjects] = useState<
     Record<string, DomainObjectAttributeDto[]>
@@ -72,43 +70,31 @@ const DomainObjectsDetail: React.FC<DomainObjectsDetailProps> = ({
   }
 
   return (
-    <div className={styles.domainObjectsDetailContainer}>
-      <div className={styles.domainObjectsHeader}>
-        <div className={styles.headerContent}>
-          <h2>Domain Objects</h2>
-          {requirementTitle && <span className={styles.requirementInfo}></span>}
-          <p className={styles.domainObjectsDescription}>
-            Domain objects and their attributes extracted from this requirement.
-          </p>
-        </div>
-      </div>
-
-      <div className={styles.tableContainer}>
-        <table className={styles.domainObjectsTable}>
-          <thead>
-            <tr>
-              <th className={styles.domainNameColumn}>Domain Object</th>
-              <th>Attributes</th>
+    <div className={styles.tableContainer}>
+      <table className={styles.domainObjectsTable}>
+        <thead>
+          <tr>
+            <th className={styles.domainNameColumn}>Domain Object</th>
+            <th>Attributes</th>
+          </tr>
+        </thead>
+        <tbody>
+          {Object.entries(domainObjects).map(([domainName, attributes]) => (
+            <tr key={domainName} className={styles.domainObjectRow}>
+              <td className={styles.domainNameCell}>{domainName}</td>
+              <td className={styles.attributesCell}>
+                <div className={styles.attributesList}>
+                  {attributes.map((attribute) => (
+                    <span key={attribute.id} className={styles.attributeTag}>
+                      {attribute.name}
+                    </span>
+                  ))}
+                </div>
+              </td>
             </tr>
-          </thead>
-          <tbody>
-            {Object.entries(domainObjects).map(([domainName, attributes]) => (
-              <tr key={domainName} className={styles.domainObjectRow}>
-                <td className={styles.domainNameCell}>{domainName}</td>
-                <td className={styles.attributesCell}>
-                  <div className={styles.attributesList}>
-                    {attributes.map((attribute) => (
-                      <span key={attribute.id} className={styles.attributeTag}>
-                        {attribute.name}
-                      </span>
-                    ))}
-                  </div>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+          ))}
+        </tbody>
+      </table>
     </div>
   );
 };
