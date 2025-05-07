@@ -5,6 +5,7 @@ import { ProjectService } from "../services/ProjectService";
 import { DomainObjectService } from "../services/DomainObjectService";
 import { DomainObjectAttributeService } from "../services/DomainObjectAttributeService";
 import { UseCaseService } from "../services/UseCaseService";
+import { TestCaseService } from "../services/TestCaseService";
 import { ExtendedAxiosInstance } from "../types/api";
 
 export const getAuthHeader = async (currentUser: User | null) => {
@@ -37,12 +38,14 @@ export const createAuthenticatedRequest = async (
   const domainObjectService = new DomainObjectService(api);
   const domainObjectAttributeService = new DomainObjectAttributeService(api);
   const useCaseService = new UseCaseService(api);
+  const testCaseService = new TestCaseService(api);
 
   api.projectService = projectService;
   api.requirementService = requirementService;
   api.domainObjectService = domainObjectService;
   api.domainObjectAttributeService = domainObjectAttributeService;
   api.useCaseService = useCaseService;
+  api.testCaseService = testCaseService;
 
   return api;
 };

@@ -31,14 +31,16 @@ const DomainObjectsDetail: React.FC<DomainObjectsDetailProps> = ({
   const fetchDomainObjects = async () => {
     try {
       setLoading(true);
-      const api = await createAuthenticatedRequest(currentUser);
+      const services = await createAuthenticatedRequest(currentUser);
+      if (!services?.domainObjectService)
+        throw new Error("Domain Object Service not available");
       const response =
-        await api.domainObjectService.getDomainObjectsWithAttributesByRequirement(
+        await services.domainObjectService.getDomainObjectsWithAttributesByRequirement(
           projectId,
           requirementId
         );
 
-      setDomainObjects(response.domainObjectsWithAttributes || {});
+      setDomainObjects(response?.domainObjectsWithAttributes || {});
     } catch (err) {
       console.error("Error fetching domain objects:", err);
       setError("Failed to fetch domain objects for this requirement");

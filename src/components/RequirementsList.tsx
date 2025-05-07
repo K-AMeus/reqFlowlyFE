@@ -76,6 +76,11 @@ const RequirementsList: React.FC<RequirementsListProps> = ({
     try {
       setLoading(true);
       const api = await createAuthenticatedRequest(currentUser);
+      if (!api.requirementService) {
+        setError("Requirement service is not available.");
+        setLoading(false);
+        return;
+      }
       const response = await api.requirementService.getAllRequirements(
         projectId,
         currentPage
@@ -147,6 +152,13 @@ const RequirementsList: React.FC<RequirementsListProps> = ({
       setLoading(true);
       setError(null);
       const api = await createAuthenticatedRequest(currentUser);
+      if (!api.requirementService) {
+        setError("Requirement service is not available.");
+        setLoading(false);
+        setIsSaving(false);
+        setIsEditingDetail(false);
+        return;
+      }
 
       const updateData = {
         title: detailEditData.title.trim(),
@@ -164,10 +176,16 @@ const RequirementsList: React.FC<RequirementsListProps> = ({
 
       let updatedRequirementData;
       try {
-        updatedRequirementData = await api.requirementService.getRequirement(
-          projectId,
-          selectedRequirement.id
-        );
+        if (!api.requirementService) {
+          console.warn(
+            "Requirement service not available when trying to fetch updated requirement."
+          );
+        } else {
+          updatedRequirementData = await api.requirementService.getRequirement(
+            projectId,
+            selectedRequirement.id
+          );
+        }
       } catch {
         console.log("Could not fetch updated requirement, will update locally");
       }
@@ -234,6 +252,12 @@ const RequirementsList: React.FC<RequirementsListProps> = ({
     try {
       setLoading(true);
       const api = await createAuthenticatedRequest(currentUser);
+      if (!api.requirementService) {
+        setError("Requirement service is not available.");
+        setLoading(false);
+        setShowDeleteConfirm(false);
+        return;
+      }
       await api.requirementService.deleteRequirement(
         projectId,
         requirementToDelete.id
@@ -568,7 +592,7 @@ const RequirementsList: React.FC<RequirementsListProps> = ({
           {!isEditingDetail ? (
             <p>
               {selectedRequirement.description || (
-                <em>No description provided.</em>
+                <em>No description provided for this requirement</em>
               )}
             </p>
           ) : (
@@ -593,7 +617,7 @@ const RequirementsList: React.FC<RequirementsListProps> = ({
               {!isEditingDetail ? (
                 <pre>
                   {selectedRequirement.sourceContent || (
-                    <em>No content provided.</em>
+                    <em>No content provided for this requirement</em>
                   )}
                 </pre>
               ) : (
@@ -652,7 +676,7 @@ const RequirementsList: React.FC<RequirementsListProps> = ({
               !selectedRequirement.sourceFileUrl && (
                 <div className={styles.sourceContent}>
                   <pre>
-                    <em>No content provided.</em>
+                    <em>No content provided for this requirement</em>
                   </pre>
                 </div>
               )}
@@ -685,7 +709,7 @@ const RequirementsList: React.FC<RequirementsListProps> = ({
             className={styles.addRequirementButton}
             onClick={handleAddRequirementClick}
           >
-            <span>+</span> Add Requirement
+            <span>+</span> Add Requirements
           </button>
         </div>
       );
@@ -793,7 +817,7 @@ const RequirementsList: React.FC<RequirementsListProps> = ({
               onClick={handleAddRequirementClick}
               disabled={isSelectMode}
             >
-              <span>+</span> Add Requirement
+              <span>+</span> Add Requirements
             </button>
           </div>
         )}

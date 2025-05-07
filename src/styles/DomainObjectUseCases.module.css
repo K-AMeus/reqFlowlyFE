@@ -1,5 +1,3 @@
-
-
 .domainObjectsUseCasesContainer {
   width: 100%;
   max-width: 1100px;
@@ -17,6 +15,15 @@
   display: flex;
   justify-content: flex-start;
   margin-bottom: 1.5rem;
+}
+
+.useCasesLoading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem 0;
+  color: #546e7a;
 }
 
 .backButton {
@@ -170,6 +177,24 @@
 }
 
 .buttonSpinner {
+  width: 20px;
+  height: 20px;
+  border: 3px solid rgba(255, 255, 255, 0.3);
+  border-radius: 50%;
+  border-top-color: #ffffff;
+  animation: spin 1s linear infinite;
+  display: inline-block;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.noUseCasesMessage {
+  color: #8a99b8;
+  text-align: center;
 }
 
 .useCasesSection {
@@ -264,7 +289,7 @@
 }
 
 .useCaseActions > div:hover svg {
-  fill: #ffffff;
+  fill: #c8e6c9;
 }
 
 .useCaseContent {
@@ -345,18 +370,26 @@
   align-items: center;
   justify-content: center;
   padding: 4rem 0;
-  color: #a6b0c4;
-  font-size: 1rem;
+  color: #000000;
+  font-weight: 500;
 }
 
 .spinner {
-  width: 48px;
-  height: 48px;
-  border: 4px solid rgba(77, 137, 196, 0.2);
+  width: 2.5rem;
+  height: 2.5rem;
+  border: 3px solid rgba(225, 235, 245, 0.6);
   border-radius: 50%;
-  border-top-color: #90caf9;
-  animation: spin 1s linear infinite;
-  margin-bottom: 1.5rem;
+  border-top-color: #1e4976;
+  border-left-color: #1e4976;
+  animation: spin 1.2s cubic-bezier(0.55, 0.15, 0.45, 0.85) infinite;
+  margin-bottom: 1rem;
+  box-shadow: 0 0 15px rgba(30, 73, 118, 0.25);
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 .error {
@@ -492,33 +525,54 @@
 }
 
 .modalOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.65);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1050;
+  padding: 1rem;
 }
 
 .confirmDialog {
-  background-color: #0f213a;
-  padding: 1.5rem 2rem;
+  background-color: #0f233e;
+  color: #cdd6f4;
+  padding: 2rem 2.5rem;
   border-radius: 8px;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
-  max-width: 450px;
-  width: 90%;
-  text-align: center;
   border: 1px solid #1e3a5f;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+  width: 100%;
+  max-width: 480px;
+  text-align: center;
 }
 
 .confirmDialog h3 {
+  font-size: 1.5rem;
+  color: #ffffff;
   margin-top: 0;
   margin-bottom: 1rem;
-  font-size: 1.25rem;
-  color: #ffffff;
 }
 
 .confirmDialog p {
-  margin-bottom: 1.5rem;
-  color: #a6b0c4;
+  font-size: 1rem;
   line-height: 1.6;
+  margin-bottom: 2rem;
+  color: #a6b0c4;
+}
+
+.confirmDialog p strong {
+  color: #90caf9;
+  font-weight: 600;
 }
 
 .dialogActions {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
 }
 
 .cancelButton,

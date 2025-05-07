@@ -4,11 +4,13 @@ import { RequirementService } from "../services/RequirementService";
 import { DomainObjectService } from "../services/DomainObjectService";
 import { DomainObjectAttributeService } from "../services/DomainObjectAttributeService";
 import { UseCaseService } from "../services/UseCaseService";
+import { TestCaseService } from "../services/TestCaseService";
 
 export interface ExtendedAxiosInstance extends AxiosInstance {
-  projectService: ProjectService;
-  requirementService: RequirementService;
-  domainObjectService: DomainObjectService;
-  domainObjectAttributeService: DomainObjectAttributeService;
-  useCaseService: UseCaseService;
+  projectService?: ProjectService;
+  requirementService?: RequirementService;
+  domainObjectService?: DomainObjectService;
+  domainObjectAttributeService?: DomainObjectAttributeService;
+  useCaseService?: UseCaseService;
+  testCaseService?: TestCaseService;
 }

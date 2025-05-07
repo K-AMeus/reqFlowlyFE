@@ -80,6 +80,9 @@ const UseCaseUploader: React.FC = () => {
       setIsLoadingRequirements(true);
       try {
         const api = await createAuthenticatedRequest(currentUser);
+        if (!api.requirementService) {
+          throw new Error("Requirement Service not available");
+        }
         const response = await api.requirementService.getAllRequirements(
           projectId,
           0,
@@ -194,6 +197,9 @@ const UseCaseUploader: React.FC = () => {
 
     try {
       const api = await createAuthenticatedRequest(currentUser);
+      if (!api.requirementService) {
+        throw new Error("Requirement Service not available");
+      }
 
       if (chosenRequirementId === "new") {
         try {
@@ -205,6 +211,9 @@ const UseCaseUploader: React.FC = () => {
             sourceType: "TEXT" as const,
             sourceContent: description.trim(),
           };
+          if (!api.requirementService) {
+            throw new Error("Requirement Service not available");
+          }
           const requirementResponse =
             await api.requirementService.createTextRequirement(
               projectId!,
@@ -267,6 +276,9 @@ const UseCaseUploader: React.FC = () => {
 
     try {
       const api = await createAuthenticatedRequest(currentUser);
+      if (!api.requirementService) {
+        throw new Error("Requirement Service not available");
+      }
 
       if (chosenRequirementId === "new") {
         try {
@@ -280,6 +292,9 @@ const UseCaseUploader: React.FC = () => {
             sourceFileUrl: "",
           };
 
+          if (!api.requirementService) {
+            throw new Error("Requirement Service not available");
+          }
           const requirementResponse =
             await api.requirementService.createPdfRequirement(
               projectId!,
@@ -515,6 +530,9 @@ const UseCaseUploader: React.FC = () => {
     setError("");
 
     try {
+      if (!api.domainObjectService) {
+        throw new Error("Domain Object Service not available");
+      }
       await api.domainObjectService.createDomainObjectsBatch(
         projectId,
         finalRequirementId,

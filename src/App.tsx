@@ -5,6 +5,7 @@ import {
   Route,
   Navigate,
   useParams,
+  useNavigate,
 } from "react-router-dom";
 import Header from "./components/Header";
 import Footer from "./components/Footer";
@@ -13,6 +14,7 @@ import LandingPage from "./components/LandingPage";
 import ProjectList from "./components/ProjectList";
 import Project from "./components/Project";
 import DomainObjectUseCases from "./components/DomainObjectUseCases";
+import UseCaseTestCases from "./components/UseCaseTestCases";
 import ToastContainer from "./components/ToastContainer";
 import { AuthProvider, useAuth } from "./context/AuthContext";
 import ScrollToTop from "./hooks/ScrollToTop";
@@ -86,10 +88,18 @@ const AppRoutes = () => {
             }
           />
           <Route
-            path="/projects/:projectId/requirements/:requirementId/use-cases"
+            path="/projects/:projectId/requirements/:requirementId/generate-use-cases"
             element={
               <ProtectedRoute>
                 <DomainObjectUseCasesRouteWrapper />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/projects/:projectId/requirements/:requirementId/use-cases/:useCaseId/generate-test-cases"
+            element={
+              <ProtectedRoute>
+                <UseCaseTestCasesRouteWrapper />
               </ProtectedRoute>
             }
           />
@@ -118,6 +128,39 @@ const DomainObjectUseCasesRouteWrapper = () => {
 
   return (
     <DomainObjectUseCases projectId={projectId} requirementId={requirementId} />
+  );
+};
+
+const UseCaseTestCasesRouteWrapper = () => {
+  const { projectId, requirementId, useCaseId } = useParams();
+  const navigate = useNavigate();
+
+  if (!projectId || !requirementId || !useCaseId) {
+    return (
+      <Navigate
+        to={
+          projectId && requirementId
+            ? `/projects/${projectId}/use-cases/${requirementId}`
+            : "/projects"
+        }
+        replace
+      />
+    );
+  }
+
+  return (
+    <UseCaseTestCases
+      projectId={projectId}
+      requirementId={requirementId}
+      initialUseCaseId={useCaseId}
+      onClose={() =>
+        navigate(
+          projectId && requirementId
+            ? `/projects/${projectId}/use-cases/${requirementId}`
+            : `/projects/${projectId}/use-cases`
+        )
+      }
+    />
   );
 };
 

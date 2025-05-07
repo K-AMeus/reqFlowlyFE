@@ -42,7 +42,6 @@ const Project: React.FC<ProjectComponentProps> = ({
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [isInlineEditing, setIsInlineEditing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
-  const [isGeneratorActive, setIsGeneratorActive] = useState(false);
 
   const { currentUser } = useAuth();
   const { projectId } = useParams<{ projectId?: string }>();
@@ -174,7 +173,6 @@ const Project: React.FC<ProjectComponentProps> = ({
 
   const handlePageChange = (page: string) => {
     setActivePage(page);
-    setIsGeneratorActive(false);
 
     if (projectId) {
       if (page === "metadata") {
@@ -348,15 +346,8 @@ const Project: React.FC<ProjectComponentProps> = ({
         return (
           <div className={styles.useCasesContent}>
             <div className={styles.unifiedContentContainer}>
-              <div
-                className={`${styles.metadataCard} ${
-                  isGeneratorActive ? styles.generatorActiveCard : ""
-                }`}
-              >
-                <UsedRequirementsList
-                  projectId={selectedProject.id}
-                  onGeneratorStateChange={setIsGeneratorActive}
-                />
+              <div className={`${styles.metadataCard}`}>
+                <UsedRequirementsList projectId={selectedProject.id} />
               </div>
             </div>
           </div>

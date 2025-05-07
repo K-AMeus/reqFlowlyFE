@@ -18,17 +18,16 @@ import {
 import { useNavigate, useParams } from "react-router-dom";
 import DomainObjectsDetail from "./DomainObjectsDetail";
 import { UseCaseCreateResDto, UseCaseDto } from "../services/UseCaseService";
-import DomainObjectUseCases from "./DomainObjectUseCases";
+import { TestCaseCreateResDto, TestCaseDto } from "../services/TestCaseService";
 import { showGlobalToast } from "../helpers/toastUtils";
+import ReactMarkdown from "react-markdown";
 
 interface UsedRequirementsListProps {
   projectId: string;
-  onGeneratorStateChange?: (isActive: boolean) => void;
 }
 
 const UsedRequirementsList: React.FC<UsedRequirementsListProps> = ({
   projectId,
-  onGeneratorStateChange,
 }): React.ReactElement | null => {
   const [requirements, setRequirements] = useState<RequirementDto[]>([]);
   const [loading, setLoading] = useState(true);
@@ -54,8 +53,6 @@ const UsedRequirementsList: React.FC<UsedRequirementsListProps> = ({
     Record<string, string | null>
   >({});
 
-  const [showUseCaseGenerator, setShowUseCaseGenerator] = useState(false);
-
   const [editingUseCaseId, setEditingUseCaseId] = useState<string | null>(null);
   const [editUseCaseData, setEditUseCaseData] = useState<UseCaseDto>({
     name: "",
@@ -67,6 +64,39 @@ const UsedRequirementsList: React.FC<UsedRequirementsListProps> = ({
     useState<UseCaseCreateResDto | null>(null);
   const [deleteLoading, setDeleteLoading] = useState(false);
   const [editError, setEditError] = useState<string | null>(null);
+
+  const [activeUseCaseTabs, setActiveUseCaseTabs] = useState<
+    Record<string, "details" | "testCases">
+  >({});
+
+  const [fetchedTestCases, setFetchedTestCases] = useState<
+    Record<string, TestCaseCreateResDto[]>
+  >({});
+  const [loadingTestCases, setLoadingTestCases] = useState<
+    Record<string, boolean>
+  >({});
+  const [errorTestCases, setErrorTestCases] = useState<
+    Record<string, string | null>
+  >({});
+
+  const [testCaseTargetedForDeletion, setTestCaseTargetedForDeletion] =
+    useState<(TestCaseCreateResDto & { parentUseCaseId: string }) | null>(null);
+
+  const [editingTestCaseId, setEditingTestCaseId] = useState<string | null>(
+    null
+  );
+  const [
+    currentEditingUseCaseIdForTestCase,
+    setCurrentEditingUseCaseIdForTestCase,
+  ] = useState<string | null>(null);
+  const [editTestCaseData, setEditTestCaseData] = useState<TestCaseDto>({
+    name: "",
+    content: "",
+  });
+  const [isSavingTestCase, setIsSavingTestCase] = useState(false);
+  const [editTestCaseError, setEditTestCaseError] = useState<string | null>(
+    null
+  );
 
   const { currentUser } = useAuth();
   const navigate = useNavigate();
@@ -80,12 +110,12 @@ const UsedRequirementsList: React.FC<UsedRequirementsListProps> = ({
       try {
         const api = await createAuthenticatedRequest(currentUser);
         const response =
-          await api.domainObjectService.getDomainObjectsWithAttributesByRequirement(
+          await api.domainObjectService?.getDomainObjectsWithAttributesByRequirement(
             projectId,
             requirementId
           );
         const fetchedNames = Object.keys(
-          response.domainObjectsWithAttributes || {}
+          response?.domainObjectsWithAttributes || {}
         );
 
         setCachedDomainObjectNames((prev) => ({
@@ -114,11 +144,14 @@ const UsedRequirementsList: React.FC<UsedRequirementsListProps> = ({
       setErrorUseCases(null);
       try {
         const api = await createAuthenticatedRequest(currentUser);
-        const response = await api.useCaseService.getUseCases(
+        if (!api.useCaseService) {
+          throw new Error("Use Case Service not available");
+        }
+        const response = await api.useCaseService?.getUseCases(
           projectId,
           requirementId
         );
-        setFetchedUseCases(response);
+        setFetchedUseCases(response || []);
       } catch (err) {
         console.error("Error fetching use cases:", err);
         setErrorUseCases("Failed to fetch use cases for this requirement");
@@ -133,33 +166,31 @@ const UsedRequirementsList: React.FC<UsedRequirementsListProps> = ({
     try {
       setLoading(true);
       const api = await createAuthenticatedRequest(currentUser);
-      const response = await api.requirementService.getUsedRequirements(
+      const response = await api.requirementService?.getUsedRequirements(
         projectId,
         currentPage
       );
 
-      setRequirements(response.content);
-      setTotalPages(response.totalPages);
+      setRequirements(response?.content || []);
+      setTotalPages(response?.totalPages || 0);
 
       if (
         requirementId &&
-        !response.content.find((req) => req.id === requirementId) &&
-        response.totalPages > 1
+        !(response?.content || []).find((req) => req.id === requirementId) &&
+        (response?.totalPages || 0) > 1
       ) {
-        for (let page = 0; page < response.totalPages; page++) {
+        for (let page = 0; page < (response?.totalPages || 0); page++) {
           if (page === currentPage) continue;
 
-          const pageResponse = await api.requirementService.getUsedRequirements(
-            projectId,
-            page
-          );
+          const pageResponse =
+            await api.requirementService?.getUsedRequirements(projectId, page);
 
-          const foundReq = pageResponse.content.find(
+          const foundReq = (pageResponse?.content || []).find(
             (req) => req.id === requirementId
           );
           if (foundReq) {
             setCurrentPage(page);
-            setRequirements(pageResponse.content);
+            setRequirements(pageResponse?.content || []);
             break;
           }
         }
@@ -183,6 +214,9 @@ const UsedRequirementsList: React.FC<UsedRequirementsListProps> = ({
         setSelectedRequirement(selectedReq);
         setViewMode("detail");
       }
+    } else if (!requirementId) {
+      setViewMode("list");
+      setSelectedRequirement(null);
     }
   }, [requirementId, requirements]);
 
@@ -208,48 +242,39 @@ const UsedRequirementsList: React.FC<UsedRequirementsListProps> = ({
     fetchAndCacheNames,
   ]);
 
+  useEffect(() => {
+    if (viewMode === "detail" && fetchedUseCases.length > 0) {
+      const newTabsState = { ...activeUseCaseTabs };
+      let changed = false;
+      fetchedUseCases.forEach((uc) => {
+        if (newTabsState[uc.id] === undefined) {
+          newTabsState[uc.id] = "details";
+          changed = true;
+        }
+      });
+      if (changed) {
+        setActiveUseCaseTabs(newTabsState);
+      }
+    }
+  }, [viewMode, fetchedUseCases, activeUseCaseTabs]);
+
   const handlePageChange = (page: number) => {
     setCurrentPage(page);
   };
 
   const handleRequirementClick = (requirement: RequirementDto) => {
-    if (showUseCaseGenerator && onGeneratorStateChange) {
-      onGeneratorStateChange(false);
-    }
-    setShowUseCaseGenerator(false);
-    setSelectedRequirement(requirement);
-    setViewMode("detail");
     navigate(`/projects/${projectId}/use-cases/${requirement.id}`);
   };
 
   const handleBackToList = () => {
-    if (showUseCaseGenerator && onGeneratorStateChange) {
-      onGeneratorStateChange(false);
-    }
-    setShowUseCaseGenerator(false);
-    setViewMode("list");
-    setSelectedRequirement(null);
     navigate(`/projects/${projectId}/use-cases`);
-  };
-
-  const handleNavigateToGenerateUseCases = () => {
-    setShowUseCaseGenerator(true);
-    if (onGeneratorStateChange) {
-      onGeneratorStateChange(true);
-    }
-  };
-
-  const handleCloseUseCaseGenerator = () => {
-    setShowUseCaseGenerator(false);
-    if (onGeneratorStateChange) {
-      onGeneratorStateChange(false);
-    }
   };
 
   const handleEditExistingUseCaseClick = (useCase: UseCaseCreateResDto) => {
     setEditingUseCaseId(useCase.id);
     setEditUseCaseData({ name: useCase.name, content: useCase.content });
     setEditError(null);
+    handleCancelEditExistingTestCase();
   };
 
   const handleCancelEditExistingUseCase = () => {
@@ -265,7 +290,10 @@ const UsedRequirementsList: React.FC<UsedRequirementsListProps> = ({
     setEditError(null);
     try {
       const api = await createAuthenticatedRequest(currentUser);
-      const updatedUseCase = await api.useCaseService.updateUseCase(
+      if (!api.useCaseService) {
+        throw new Error("Use Case Service not available");
+      }
+      const updatedUseCase = await api.useCaseService?.updateUseCase(
         projectId,
         selectedRequirement.id,
         editingUseCaseId,
@@ -273,7 +301,9 @@ const UsedRequirementsList: React.FC<UsedRequirementsListProps> = ({
       );
 
       setFetchedUseCases((prev) =>
-        prev.map((uc) => (uc.id === editingUseCaseId ? updatedUseCase : uc))
+        prev.map((uc) =>
+          uc.id === editingUseCaseId && updatedUseCase ? updatedUseCase : uc
+        )
       );
 
       setEditingUseCaseId(null);
@@ -288,12 +318,6 @@ const UsedRequirementsList: React.FC<UsedRequirementsListProps> = ({
     }
   };
 
-  const handleDeleteExistingUseCaseClick = (useCase: UseCaseCreateResDto) => {
-    setUseCaseToDelete(useCase);
-    setShowDeleteConfirm(true);
-    setEditError(null);
-  };
-
   const handleCancelDeleteExistingUseCase = () => {
     setShowDeleteConfirm(false);
     setUseCaseToDelete(null);
@@ -306,7 +330,10 @@ const UsedRequirementsList: React.FC<UsedRequirementsListProps> = ({
     setEditError(null);
     try {
       const api = await createAuthenticatedRequest(currentUser);
-      await api.useCaseService.deleteUseCase(
+      if (!api.useCaseService) {
+        throw new Error("Use Case Service not available");
+      }
+      await api.useCaseService?.deleteUseCase(
         projectId,
         selectedRequirement.id,
         useCaseToDelete.id
@@ -325,6 +352,176 @@ const UsedRequirementsList: React.FC<UsedRequirementsListProps> = ({
         "error",
         `Failed to delete use case "${useCaseToDelete.name}".`
       );
+    } finally {
+      setDeleteLoading(false);
+    }
+  };
+
+  const fetchTestCasesForUseCase = useCallback(
+    async (useCaseId: string) => {
+      if (!selectedRequirement) return;
+
+      setLoadingTestCases((prev) => ({ ...prev, [useCaseId]: true }));
+      setErrorTestCases((prev) => ({ ...prev, [useCaseId]: null }));
+
+      try {
+        const api = await createAuthenticatedRequest(currentUser);
+        if (!api.testCaseService) {
+          throw new Error("Test Case Service not available");
+        }
+        const response = await api.testCaseService?.getTestCases(
+          projectId,
+          selectedRequirement.id,
+          useCaseId
+        );
+        setFetchedTestCases((prev) => ({
+          ...prev,
+          [useCaseId]: response || [],
+        }));
+      } catch (err) {
+        console.error(
+          `Error fetching test cases for use case ${useCaseId}:`,
+          err
+        );
+        setErrorTestCases((prev) => ({
+          ...prev,
+          [useCaseId]: "Failed to fetch test cases",
+        }));
+      } finally {
+        setLoadingTestCases((prev) => ({ ...prev, [useCaseId]: false }));
+      }
+    },
+    [currentUser, projectId, selectedRequirement]
+  );
+
+  const handleTabChange = (useCaseId: string, tab: "details" | "testCases") => {
+    setActiveUseCaseTabs((prev) => ({ ...prev, [useCaseId]: tab }));
+    setTestCaseTargetedForDeletion(null);
+    if (editingTestCaseId && currentEditingUseCaseIdForTestCase === useCaseId) {
+      handleCancelEditExistingTestCase();
+    }
+    if (tab === "details") {
+      setEditingTestCaseId(null);
+    }
+    if (
+      tab === "testCases" &&
+      !fetchedTestCases[useCaseId] &&
+      !loadingTestCases[useCaseId] &&
+      !errorTestCases[useCaseId]
+    ) {
+      fetchTestCasesForUseCase(useCaseId);
+    }
+  };
+
+  const handleEditExistingTestCaseClick = (
+    useCaseId: string,
+    testCase: TestCaseCreateResDto
+  ) => {
+    setEditingTestCaseId(testCase.id);
+    setCurrentEditingUseCaseIdForTestCase(useCaseId);
+    setEditTestCaseData({ name: testCase.name, content: testCase.content });
+    setEditTestCaseError(null);
+    setEditingUseCaseId(null);
+  };
+
+  const handleCancelEditExistingTestCase = () => {
+    setEditingTestCaseId(null);
+    setCurrentEditingUseCaseIdForTestCase(null);
+    setEditTestCaseData({ name: "", content: "" });
+    setEditTestCaseError(null);
+  };
+
+  const handleSaveExistingTestCase = async () => {
+    if (
+      !editingTestCaseId ||
+      !currentEditingUseCaseIdForTestCase ||
+      !selectedRequirement
+    ) {
+      setEditTestCaseError("Failed to save: Missing critical data.");
+      return;
+    }
+
+    setIsSavingTestCase(true);
+    setEditTestCaseError(null);
+
+    try {
+      const api = await createAuthenticatedRequest(currentUser);
+      if (!api.testCaseService) {
+        throw new Error("Test Case Service not available");
+      }
+      const updatedTestCase = await api.testCaseService?.updateTestCase(
+        projectId,
+        selectedRequirement.id,
+        currentEditingUseCaseIdForTestCase,
+        editingTestCaseId,
+        editTestCaseData
+      );
+
+      if (updatedTestCase) {
+        setFetchedTestCases((prev) => ({
+          ...prev,
+          [currentEditingUseCaseIdForTestCase]: prev[
+            currentEditingUseCaseIdForTestCase!
+          ]
+            ? prev[currentEditingUseCaseIdForTestCase!].map((tc) =>
+                tc.id === updatedTestCase.id ? updatedTestCase : tc
+              )
+            : [updatedTestCase],
+        }));
+      }
+      showGlobalToast(
+        "success",
+        `Test case "${editTestCaseData.name}" updated.`
+      );
+      handleCancelEditExistingTestCase();
+    } catch (err) {
+      console.error("Error updating test case:", err);
+      const errorMsg = `Failed to update test case "${editTestCaseData.name}".`;
+      setEditTestCaseError(errorMsg);
+      showGlobalToast("error", errorMsg);
+    } finally {
+      setIsSavingTestCase(false);
+    }
+  };
+
+  const handleCancelDeleteExistingTestCase = () => {
+    setShowDeleteConfirm(false);
+    setTestCaseTargetedForDeletion(null);
+  };
+
+  const handleConfirmDeleteExistingTestCase = async () => {
+    if (!testCaseTargetedForDeletion || !selectedRequirement) return;
+
+    setDeleteLoading(true);
+    const {
+      parentUseCaseId,
+      id: testCaseId,
+      name,
+    } = testCaseTargetedForDeletion;
+
+    try {
+      const api = await createAuthenticatedRequest(currentUser);
+      if (!api.testCaseService) {
+        throw new Error("Test Case Service not available");
+      }
+      await api.testCaseService?.deleteTestCase(
+        projectId,
+        selectedRequirement.id,
+        parentUseCaseId,
+        testCaseId
+      );
+
+      setFetchedTestCases((prev) => ({
+        ...prev,
+        [parentUseCaseId]:
+          prev[parentUseCaseId]?.filter((tc) => tc.id !== testCaseId) || [],
+      }));
+
+      showGlobalToast("success", `Test case "${name}" deleted successfully.`);
+      handleCancelDeleteExistingTestCase();
+    } catch (err) {
+      console.error(`Failed to delete test case ${testCaseId}:`, err);
+      showGlobalToast("error", `Failed to delete test case "${name}".`);
     } finally {
       setDeleteLoading(false);
     }
@@ -390,155 +587,362 @@ const UsedRequirementsList: React.FC<UsedRequirementsListProps> = ({
 
     return (
       <div className={styles.requirementDetailView}>
-        {!showUseCaseGenerator ? (
-          <>
-            <div className={styles.detailHeaderActions}>
-              <button
-                className={styles.actionButton}
-                onClick={handleBackToList}
-              >
-                <ChevronLeft /> Back to Requirements
-              </button>
-              <button
-                className={styles.actionButton}
-                onClick={handleNavigateToGenerateUseCases}
-              >
-                Create Use Cases <ChevronRight />
-              </button>
-            </div>
+        <>
+          <div className={styles.detailHeaderActions}>
+            <button className={styles.actionButton} onClick={handleBackToList}>
+              <ChevronLeft /> Back to Requirements
+            </button>
+            <button
+              className={styles.actionButton}
+              onClick={() =>
+                navigate(
+                  `/projects/${projectId}/requirements/${selectedRequirement.id}/generate-use-cases`
+                )
+              }
+            >
+              Create Use Cases <ChevronRight />
+            </button>
+          </div>
 
-            <div className={styles.requirementDetailHeader}>
-              <div className={styles.requirementDetailMainContent}>
-                <h2 className={styles.requirementDetailTitle}>
-                  {selectedRequirement.title}
-                </h2>
-                {selectedRequirement.description && (
-                  <p className={styles.requirementDescription}>
-                    {selectedRequirement.description}
-                  </p>
-                )}
-              </div>
-            </div>
-
-            <DomainObjectsDetail
-              projectId={projectId}
-              requirementId={selectedRequirement.id}
-            />
-
-            <div className={styles.useCasesSectionContainer}>
-              <h3 className={styles.useCasesSectionTitle}>Use Cases</h3>
-              {loadingUseCases ? (
-                <div className={styles.useCasesLoading}>
-                  <div className={styles.spinner}></div>
-                  <p>Loading use cases...</p>
-                </div>
-              ) : errorUseCases ? (
-                <div className={`${styles.error} ${styles.useCasesError}`}>
-                  {errorUseCases}
-                </div>
-              ) : fetchedUseCases.length > 0 ? (
-                <div className={styles.useCasesList}>
-                  {fetchedUseCases.map((useCase) => (
-                    <div key={useCase.id} className={styles.useCaseItem}>
-                      {editingUseCaseId === useCase.id ? (
-                        <div className={styles.useCaseEditForm}>
-                          <div className={styles.editHeader}>
-                            <input
-                              type="text"
-                              value={editUseCaseData.name}
-                              onChange={(e) =>
-                                setEditUseCaseData({
-                                  ...editUseCaseData,
-                                  name: e.target.value,
-                                })
-                              }
-                              className={styles.editInputName}
-                              placeholder="Use Case Name"
-                            />
-                            <div className={styles.editActions}>
-                              <SaveIcon
-                                isLoading={isSavingUseCase}
-                                onClick={handleSaveExistingUseCase}
-                              />
-                              <CancelIcon
-                                onClick={handleCancelEditExistingUseCase}
-                              />
-                            </div>
-                          </div>
-                          <textarea
-                            value={editUseCaseData.content}
-                            onChange={(e) =>
-                              setEditUseCaseData({
-                                ...editUseCaseData,
-                                content: e.target.value,
-                              })
-                            }
-                            className={styles.editInputContent}
-                            placeholder="Use Case Content"
-                            rows={6}
-                          />
-                          {editError && (
-                            <div className={styles.editErrorMessage}>
-                              {editError}
-                            </div>
-                          )}
-                        </div>
-                      ) : (
-                        <>
-                          <div className={styles.useCaseHeader}>
-                            <h4>{useCase.name}</h4>
-                            <div className={styles.useCaseActions}>
-                              <RequirementEditIcon
-                                onClick={() =>
-                                  handleEditExistingUseCaseClick(useCase)
-                                }
-                              />
-                              <RequirementDeleteIcon
-                                onClick={() =>
-                                  handleDeleteExistingUseCaseClick(useCase)
-                                }
-                              />
-                            </div>
-                          </div>
-                          <pre className={styles.useCaseContent}>
-                            {useCase.content}
-                          </pre>
-                        </>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <p className={styles.noUseCasesMessage}>
-                  No existing use cases found for this requirement.
+          <div className={styles.requirementDetailHeader}>
+            <div className={styles.requirementDetailMainContent}>
+              <h2 className={styles.requirementDetailTitle}>
+                {selectedRequirement.title}
+              </h2>
+              {selectedRequirement.description && (
+                <p className={styles.requirementDescription}>
+                  {selectedRequirement.description}
                 </p>
               )}
             </div>
-          </>
-        ) : (
-          <DomainObjectUseCases
+          </div>
+
+          <DomainObjectsDetail
             projectId={projectId}
             requirementId={selectedRequirement.id}
-            requirementTitle={selectedRequirement.title}
-            onClose={handleCloseUseCaseGenerator}
           />
-        )}
+
+          <div className={styles.useCasesSectionContainer}>
+            <h3 className={styles.useCasesSectionTitle}>
+              Use Cases and Test Cases
+            </h3>
+            {loadingUseCases ? (
+              <div className={styles.useCasesLoading}>
+                <div className={styles.spinner}></div>
+                <p>Loading use cases...</p>
+              </div>
+            ) : errorUseCases ? (
+              <div className={`${styles.error} ${styles.useCasesError}`}>
+                {errorUseCases}
+              </div>
+            ) : fetchedUseCases.length > 0 ? (
+              <div className={styles.useCasesList}>
+                {fetchedUseCases.map((useCase) => {
+                  const isActiveTabDetails =
+                    activeUseCaseTabs[useCase.id] === "details" ||
+                    activeUseCaseTabs[useCase.id] === undefined;
+                  const isActiveTabTestCases =
+                    activeUseCaseTabs[useCase.id] === "testCases";
+
+                  return (
+                    <div
+                      key={useCase.id}
+                      className={styles.useCaseEntryWrapper}
+                    >
+                      <div className={styles.useCaseEntryHeader}>
+                        <h4 className={styles.useCaseNameTitle}>
+                          {useCase.name}
+                        </h4>
+                        <div className={styles.topActionsBar}>
+                          <button
+                            className={styles.actionButton}
+                            style={{ marginRight: "8px" }}
+                            onClick={() => {
+                              navigate(
+                                `/projects/${projectId}/requirements/${selectedRequirement.id}/use-cases/${useCase.id}/generate-test-cases`
+                              );
+                            }}
+                          >
+                            Create Test Cases
+                          </button>
+                          <RequirementEditIcon
+                            onClick={() => {
+                              if (isActiveTabDetails) {
+                                handleEditExistingUseCaseClick(useCase);
+                              } else if (isActiveTabTestCases) {
+                                const singleTestCase =
+                                  fetchedTestCases[useCase.id]?.[0];
+                                if (singleTestCase) {
+                                  if (editingTestCaseId === singleTestCase.id) {
+                                    handleCancelEditExistingTestCase();
+                                  } else {
+                                    handleEditExistingTestCaseClick(
+                                      useCase.id,
+                                      singleTestCase
+                                    );
+                                  }
+                                } else {
+                                  showGlobalToast(
+                                    "info",
+                                    "No test case found to edit."
+                                  );
+                                }
+                              }
+                            }}
+                          />
+                          <RequirementDeleteIcon
+                            onClick={() => {
+                              if (isActiveTabDetails) {
+                                setUseCaseToDelete(useCase);
+                                setShowDeleteConfirm(true);
+                                setTestCaseTargetedForDeletion(null);
+                              } else if (isActiveTabTestCases) {
+                                const singleTestCase =
+                                  fetchedTestCases[useCase.id]?.[0];
+                                if (singleTestCase) {
+                                  setTestCaseTargetedForDeletion({
+                                    ...singleTestCase,
+                                    parentUseCaseId: useCase.id,
+                                  });
+                                  setShowDeleteConfirm(true);
+                                  setUseCaseToDelete(null);
+                                } else {
+                                  showGlobalToast(
+                                    "info",
+                                    "No test case found to delete."
+                                  );
+                                }
+                              }
+                            }}
+                          />
+                        </div>
+                      </div>
+
+                      <div className={styles.tabsNav}>
+                        <button
+                          className={`${styles.tabButton} ${
+                            isActiveTabDetails ? styles.tabButtonActive : ""
+                          }`}
+                          onClick={() => handleTabChange(useCase.id, "details")}
+                        >
+                          Use Cases
+                        </button>
+                        <button
+                          className={`${styles.tabButton} ${
+                            isActiveTabTestCases ? styles.tabButtonActive : ""
+                          }`}
+                          onClick={() =>
+                            handleTabChange(useCase.id, "testCases")
+                          }
+                        >
+                          Test Cases
+                        </button>
+                      </div>
+
+                      <div className={styles.tabContent}>
+                        {isActiveTabDetails && (
+                          <>
+                            {editingUseCaseId === useCase.id ? (
+                              <div className={styles.useCaseEditForm}>
+                                <div className={styles.editHeader}>
+                                  <input
+                                    type="text"
+                                    value={editUseCaseData.name}
+                                    onChange={(e) =>
+                                      setEditUseCaseData({
+                                        ...editUseCaseData,
+                                        name: e.target.value,
+                                      })
+                                    }
+                                    className={styles.editInputName}
+                                    placeholder="Use Case Name"
+                                  />
+                                  <div className={styles.editActions}>
+                                    <SaveIcon
+                                      isLoading={isSavingUseCase}
+                                      onClick={handleSaveExistingUseCase}
+                                    />
+                                    <CancelIcon
+                                      onClick={handleCancelEditExistingUseCase}
+                                    />
+                                  </div>
+                                </div>
+                                <textarea
+                                  value={editUseCaseData.content}
+                                  onChange={(e) =>
+                                    setEditUseCaseData({
+                                      ...editUseCaseData,
+                                      content: e.target.value,
+                                    })
+                                  }
+                                  className={styles.editInputContent}
+                                  placeholder="Use Case Content"
+                                  rows={6}
+                                />
+                                {editError && (
+                                  <div className={styles.editErrorMessage}>
+                                    {editError}
+                                  </div>
+                                )}
+                              </div>
+                            ) : (
+                              <div className={styles.useCaseContent}>
+                                <ReactMarkdown>{useCase.content}</ReactMarkdown>
+                              </div>
+                            )}
+                          </>
+                        )}
+
+                        {isActiveTabTestCases && (
+                          <div className={styles.testCasesContainerFluid}>
+                            {loadingTestCases[useCase.id] && (
+                              <div className={styles.useCasesLoading}>
+                                <div className={styles.spinner}></div>
+                                <p>Loading test cases...</p>
+                              </div>
+                            )}
+                            {errorTestCases[useCase.id] && (
+                              <div
+                                className={`${styles.error} ${styles.useCasesError}`}
+                              >
+                                {errorTestCases[useCase.id]}
+                              </div>
+                            )}
+                            {!loadingTestCases[useCase.id] &&
+                              !errorTestCases[useCase.id] &&
+                              fetchedTestCases[useCase.id] && (
+                                <>
+                                  {fetchedTestCases[useCase.id]?.length ===
+                                    0 && (
+                                    <p className={styles.noUseCasesMessage}>
+                                      No test case exists for this use case.
+                                    </p>
+                                  )}
+                                  {fetchedTestCases[useCase.id]
+                                    ?.slice(0, 1)
+                                    .map((testCase) => (
+                                      <div
+                                        key={testCase.id}
+                                        className={
+                                          styles.individualTestCaseEntry
+                                        }
+                                      >
+                                        {editingTestCaseId === testCase.id &&
+                                        currentEditingUseCaseIdForTestCase ===
+                                          useCase.id ? (
+                                          <div
+                                            className={styles.useCaseEditForm}
+                                          >
+                                            <div className={styles.editHeader}>
+                                              <input
+                                                type="text"
+                                                value={editTestCaseData.name}
+                                                onChange={(e) =>
+                                                  setEditTestCaseData({
+                                                    ...editTestCaseData,
+                                                    name: e.target.value,
+                                                  })
+                                                }
+                                                className={styles.editInputName}
+                                                placeholder="Test Case Name"
+                                              />
+                                              <div
+                                                className={styles.editActions}
+                                              >
+                                                <SaveIcon
+                                                  isLoading={isSavingTestCase}
+                                                  onClick={
+                                                    handleSaveExistingTestCase
+                                                  }
+                                                />
+                                                <CancelIcon
+                                                  onClick={
+                                                    handleCancelEditExistingTestCase
+                                                  }
+                                                />
+                                              </div>
+                                            </div>
+                                            <textarea
+                                              value={editTestCaseData.content}
+                                              onChange={(e) =>
+                                                setEditTestCaseData({
+                                                  ...editTestCaseData,
+                                                  content: e.target.value,
+                                                })
+                                              }
+                                              className={
+                                                styles.editInputContent
+                                              }
+                                              placeholder="Test Case Content"
+                                              rows={6}
+                                            />
+                                            {editTestCaseError && (
+                                              <div
+                                                className={
+                                                  styles.editErrorMessage
+                                                }
+                                              >
+                                                {editTestCaseError}
+                                              </div>
+                                            )}
+                                          </div>
+                                        ) : (
+                                          <>
+                                            <div
+                                              className={styles.testCaseHeader}
+                                            >
+                                              <h4>{testCase.name}</h4>
+                                            </div>
+                                            <div
+                                              className={styles.testCaseContent}
+                                            >
+                                              <ReactMarkdown>
+                                                {testCase.content}
+                                              </ReactMarkdown>
+                                            </div>
+                                          </>
+                                        )}
+                                      </div>
+                                    ))}
+                                </>
+                              )}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            ) : (
+              <p className={styles.noUseCasesMessage}>
+                No use cases found for this requirement. You can generate them
+                or check back later.
+              </p>
+            )}
+          </div>
+        </>
         {showDeleteConfirm &&
-          useCaseToDelete &&
           ReactDOM.createPortal(
             <div className={styles.modalOverlay}>
               <div className={styles.confirmDialog}>
-                <h3>Delete Use Case?</h3>
+                <h3>Delete {useCaseToDelete ? "Use Case" : "Test Case"}?</h3>
                 <p>
-                  Are you sure you wish to delete the use case "
-                  <strong>{useCaseToDelete.name}</strong>"? This action cannot
-                  be undone.
+                  Are you sure you wish to delete the{" "}
+                  {useCaseToDelete ? "use case" : "test case"} "
+                  <strong>
+                    {useCaseToDelete?.name || testCaseTargetedForDeletion?.name}
+                  </strong>
+                  "? This action cannot be undone.
                 </p>
                 <div className={styles.formActions}>
                   <button
                     type="button"
                     className={styles.cancelButton}
-                    onClick={handleCancelDeleteExistingUseCase}
+                    onClick={
+                      useCaseToDelete
+                        ? handleCancelDeleteExistingUseCase
+                        : handleCancelDeleteExistingTestCase
+                    }
                     disabled={deleteLoading}
                   >
                     Cancel
@@ -546,7 +950,11 @@ const UsedRequirementsList: React.FC<UsedRequirementsListProps> = ({
                   <button
                     type="button"
                     className={styles.deleteButton}
-                    onClick={handleConfirmDeleteExistingUseCase}
+                    onClick={
+                      useCaseToDelete
+                        ? handleConfirmDeleteExistingUseCase
+                        : handleConfirmDeleteExistingTestCase
+                    }
                     disabled={deleteLoading}
                   >
                     {deleteLoading ? (

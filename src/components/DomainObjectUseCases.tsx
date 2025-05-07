@@ -19,15 +19,11 @@ import { showGlobalToast } from "../helpers/toastUtils";
 interface DomainObjectUseCasesProps {
   projectId: string;
   requirementId: string;
-  requirementTitle?: string;
-  onClose?: () => void;
 }
 
 const DomainObjectUseCases: React.FC<DomainObjectUseCasesProps> = ({
   projectId,
   requirementId,
-  requirementTitle,
-  onClose,
 }) => {
   const [domainObjects, setDomainObjects] = useState<
     Record<string, DomainObjectAttributeDto[]>
@@ -68,12 +64,12 @@ const DomainObjectUseCases: React.FC<DomainObjectUseCasesProps> = ({
       setError(null);
       const api = await createAuthenticatedRequest(currentUser);
       const response =
-        await api.domainObjectService.getDomainObjectsWithAttributesByRequirement(
+        await api.domainObjectService?.getDomainObjectsWithAttributesByRequirement(
           projectId,
           requirementId
         );
 
-      const fetchedDomainObjects = response.domainObjectsWithAttributes || {};
+      const fetchedDomainObjects = response?.domainObjectsWithAttributes || {};
       setDomainObjects(fetchedDomainObjects);
       setDomainObjectNames(Object.keys(fetchedDomainObjects));
     } catch (err) {
@@ -115,6 +111,9 @@ const DomainObjectUseCases: React.FC<DomainObjectUseCasesProps> = ({
       setGeneratedUseCases((prev) => ({ ...prev, [domainObjectName]: [] }));
 
       const api = await createAuthenticatedRequest(currentUser);
+      if (!api.useCaseService) {
+        throw new Error("Use Case Service not available.");
+      }
       const response = await api.useCaseService.generateUseCases(
         projectId,
         requirementId,
@@ -126,10 +125,10 @@ const DomainObjectUseCases: React.FC<DomainObjectUseCasesProps> = ({
 
       setGeneratedUseCases((prev) => ({
         ...prev,
-        [domainObjectName]: response,
+        [domainObjectName]: response || [],
       }));
 
-      if (response.length > 0) {
+      if (response && response.length > 0) {
         showGlobalToast(
           "success",
           `Use cases for ${domainObjectName} generated successfully!`
@@ -170,6 +169,9 @@ const DomainObjectUseCases: React.FC<DomainObjectUseCasesProps> = ({
     setError(null);
     try {
       const api = await createAuthenticatedRequest(currentUser);
+      if (!api.useCaseService) {
+        throw new Error("Use Case Service not available.");
+      }
       const updatedUseCase = await api.useCaseService.updateUseCase(
         projectId,
         requirementId,
@@ -177,12 +179,16 @@ const DomainObjectUseCases: React.FC<DomainObjectUseCasesProps> = ({
         editUseCaseData
       );
 
-      setGeneratedUseCases((prev) => ({
-        ...prev,
-        [currentDomainObjectName]: (prev[currentDomainObjectName] || []).map(
-          (uc) => (uc.id === editingUseCaseId ? updatedUseCase : uc)
-        ),
-      }));
+      if (updatedUseCase) {
+        setGeneratedUseCases((prev) => ({
+          ...prev,
+          [currentDomainObjectName]: (prev[currentDomainObjectName] || []).map(
+            (uc) => (uc.id === editingUseCaseId ? updatedUseCase : uc)
+          ),
+        }));
+      } else {
+        console.warn("Update operation did not return a use case object.");
+      }
 
       setEditingUseCaseId(null);
       showGlobalToast("success", "Use case updated successfully.");
@@ -213,6 +219,9 @@ const DomainObjectUseCases: React.FC<DomainObjectUseCasesProps> = ({
     setError(null);
     try {
       const api = await createAuthenticatedRequest(currentUser);
+      if (!api.useCaseService) {
+        throw new Error("Use Case Service not available.");
+      }
       await api.useCaseService.deleteUseCase(
         projectId,
         requirementId,
@@ -239,11 +248,7 @@ const DomainObjectUseCases: React.FC<DomainObjectUseCasesProps> = ({
   };
 
   const handleBackToList = () => {
-    if (onClose) {
-      onClose();
-    } else {
-      navigate(`/projects/${projectId}/use-cases`);
-    }
+    navigate(`/projects/${projectId}/use-cases/${requirementId}`);
   };
 
   if (loading) {
@@ -264,7 +269,7 @@ const DomainObjectUseCases: React.FC<DomainObjectUseCasesProps> = ({
       <div className={styles.emptyState}>
         <p>No domain objects found for this requirement.</p>
         <button className={styles.backButton} onClick={handleBackToList}>
-          <ChevronLeft /> {onClose ? "Close" : "Back to Requirements List"}
+          <ChevronLeft /> Back to Requirement Details
         </button>
       </div>
     );
@@ -278,15 +283,9 @@ const DomainObjectUseCases: React.FC<DomainObjectUseCasesProps> = ({
     <div className={styles.domainObjectsUseCasesContainer}>
       <div className={styles.topActions}>
         <button className={styles.backButton} onClick={handleBackToList}>
-          <ChevronLeft /> {onClose ? "Back" : "Back to Requirements List"}
+          <ChevronLeft /> Back to Requirement Details
         </button>
       </div>
-
-      {requirementTitle && (
-        <div className={styles.requirementContext}>
-          Requirement: {requirementTitle}
-        </div>
-      )}
 
       <div className={styles.tableContainer}>
         <table className={styles.domainObjectTable}>
