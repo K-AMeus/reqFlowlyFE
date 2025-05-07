@@ -830,7 +830,9 @@ const UsedRequirementsList: React.FC<UsedRequirementsListProps> = ({
                                   {fetchedTestCases[useCase.id]?.length ===
                                     0 && (
                                     <p className={styles.noUseCasesMessage}>
-                                      No test case exists for this use case.
+                                      No test cases exists for this use case.
+                                      Click the "Create Test Cases" button above
+                                      to get started.
                                     </p>
                                   )}
                                   {fetchedTestCases[useCase.id]
@@ -1036,12 +1038,12 @@ const UsedRequirementsList: React.FC<UsedRequirementsListProps> = ({
             const isLoadingNames = cardLoadingStates[requirement.id];
             const errorLoadingNames = cardErrorStates[requirement.id];
             const domainNames = cachedDomainObjectNames[requirement.id];
-            const displayLimit = 3;
+            const displayLimit = 5;
 
             return (
               <div
                 key={requirement.id}
-                className={styles.requirementCard}
+                className={styles.requirementCardUsed}
                 onClick={() => handleRequirementClick(requirement)}
               >
                 <div className={styles.requirementCardHeader}>
@@ -1059,19 +1061,6 @@ const UsedRequirementsList: React.FC<UsedRequirementsListProps> = ({
                     {requirement.sourceType === "TEXT" && <TextIcon />}
                     {requirement.sourceType === "TEXT" ? "TXT" : "PDF"}
                   </span>
-                </div>
-                <div className={styles.requirementCardContent}>
-                  {requirement.description ? (
-                    <p className={styles.requirementDescription}>
-                      {requirement.description}
-                    </p>
-                  ) : (
-                    <p
-                      className={`${styles.requirementDescription} ${styles.previewEmpty}`}
-                    >
-                      No description provided for this requirement
-                    </p>
-                  )}
                 </div>
 
                 <div className={styles.domainObjectPreview}>
