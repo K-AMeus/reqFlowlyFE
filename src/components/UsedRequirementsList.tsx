@@ -604,27 +604,41 @@ const UsedRequirementsList: React.FC<UsedRequirementsListProps> = ({
             </button>
           </div>
 
-          <div className={styles.requirementDetailHeader}>
-            <div className={styles.requirementDetailMainContent}>
-              <h2 className={styles.requirementDetailTitle}>
-                {selectedRequirement.title}
-              </h2>
-              {selectedRequirement.description && (
-                <p className={styles.requirementDescription}>
-                  {selectedRequirement.description}
-                </p>
-              )}
+          <div className={styles.useCasesContent}>
+            <h3 className={styles.useCasesSectionTitle}>Requirement Info</h3>
+            <div className={styles.requirementDetailHeader}>
+              <div className={styles.requirementDetailMainContent}>
+                <h2 className={styles.requirementDetailTitle}>
+                  {selectedRequirement.title}
+                </h2>
+                {selectedRequirement.description ? (
+                  <p className={styles.requirementDescription}>
+                    {selectedRequirement.description}
+                  </p>
+                ) : (
+                  <p
+                    className={`${styles.requirementDescription} ${styles.noDescriptionAvailable}`}
+                  >
+                    <em>No description provided for this requirement</em>
+                  </p>
+                )}
+              </div>
             </div>
           </div>
 
-          <DomainObjectsDetail
-            projectId={projectId}
-            requirementId={selectedRequirement.id}
-          />
+          <div className={styles.useCasesSectionContainer}>
+            <h3 className={styles.useCasesSectionTitle}>
+              Domain objects & attributes
+            </h3>
+            <DomainObjectsDetail
+              projectId={projectId}
+              requirementId={selectedRequirement.id}
+            />
+          </div>
 
           <div className={styles.useCasesSectionContainer}>
             <h3 className={styles.useCasesSectionTitle}>
-              Use Cases and Test Cases
+              Use cases & test cases
             </h3>
             {loadingUseCases ? (
               <div className={styles.useCasesLoading}>
@@ -648,6 +662,7 @@ const UsedRequirementsList: React.FC<UsedRequirementsListProps> = ({
                     <div
                       key={useCase.id}
                       className={styles.useCaseEntryWrapper}
+                      style={{ marginBottom: "30px" }}
                     >
                       <div className={styles.useCaseEntryHeader}>
                         <h4 className={styles.useCaseNameTitle}>
@@ -914,10 +929,28 @@ const UsedRequirementsList: React.FC<UsedRequirementsListProps> = ({
                 })}
               </div>
             ) : (
-              <p className={styles.noUseCasesMessage}>
-                No use cases found for this requirement. You can generate them
-                or check back later.
-              </p>
+              <div className={styles.emptyStateContainer}>
+                <p className={styles.noUseCasesMessage}>
+                  No use cases exist for this requirement. You can generate them
+                  using the "Create Use Cases" button below.
+                </p>
+                <button
+                  className={styles.actionButton}
+                  onClick={() =>
+                    navigate(
+                      `/projects/${projectId}/requirements/${selectedRequirement.id}/generate-use-cases`
+                    )
+                  }
+                  style={{
+                    marginTop: "0.5rem",
+                    display: "flex",
+                    marginLeft: "auto",
+                    marginRight: "auto",
+                  }}
+                >
+                  Create Use Cases
+                </button>
+              </div>
             )}
           </div>
         </>
@@ -1098,9 +1131,11 @@ const UsedRequirementsList: React.FC<UsedRequirementsListProps> = ({
       {viewMode === "list" ? (
         <>
           <div className={styles.requirementsHeader}>
-            <h2>Use Cases</h2>
+            <h2>Use Cases & Test Cases</h2>
             <p className={styles.requirementsSubtitle}>
-              List of domain objects that have been generated from requirements.
+              List of requirements that have been used to create domain objects
+              with. To create use cases and test cases, select a requirement
+              from the list below.
             </p>
           </div>
           {error && <div className={styles.error}>{error}</div>}

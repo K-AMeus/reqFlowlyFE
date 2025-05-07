@@ -131,7 +131,7 @@ const DomainObjectUseCases: React.FC<DomainObjectUseCasesProps> = ({
       if (response && response.length > 0) {
         showGlobalToast(
           "success",
-          `Use cases for ${domainObjectName} generated successfully!`
+          `Use cases for ${domainObjectName} generated and saved successfully!`
         );
       } else {
         showGlobalToast(
@@ -283,7 +283,7 @@ const DomainObjectUseCases: React.FC<DomainObjectUseCasesProps> = ({
     <div className={styles.domainObjectsUseCasesContainer}>
       <div className={styles.topActions}>
         <button className={styles.backButton} onClick={handleBackToList}>
-          <ChevronLeft /> Back to Requirement Details
+          <ChevronLeft /> Back
         </button>
       </div>
 

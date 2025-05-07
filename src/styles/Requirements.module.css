@@ -1528,7 +1528,6 @@
   align-items: center;
   margin-bottom: 1.5rem;
   padding-bottom: 1rem;
-  border-bottom: 1px solid rgba(30, 73, 118, 0.1);
 }
 
 .actionButton {
@@ -1565,14 +1564,13 @@
 }
 
 .useCasesSectionContainer {
-  margin-top: 2rem;
-  padding-top: 1.5rem;
-  border-top: 1px solid rgba(30, 73, 118, 0.15);
+  margin-top: 1rem;
+  padding-top: 1rem;
 }
 
 .useCasesSectionTitle {
   font-size: 1.3rem;
-  color: #0a1929;
+  color: rgb(30, 69, 110);
   font-weight: 600;
   margin-bottom: 1rem;
 }
@@ -1975,14 +1973,14 @@
 }
 
 .tabButton:hover {
-  color: #0056b3;
+  color: rgb(30, 73, 118);
   background-color: #e9ecef;
 }
 
 .tabButtonActive {
-  color: #007bff;
+  color: rgb(30, 73, 118);
   font-weight: 600;
-  border-bottom-color: #007bff;
+  border-bottom-color: rgb(30, 73, 118);
   background-color: #fff;
 }
 

@@ -19,7 +19,7 @@ const ProjectSidebar: React.FC<ProjectSidebarProps> = ({
   const navItems = [
     {
       id: "metadata",
-      name: "Project Metadata",
+      name: "Requirements",
       icon: "📋",
     },
     {
@@ -29,13 +29,8 @@ const ProjectSidebar: React.FC<ProjectSidebarProps> = ({
     },
     {
       id: "use-cases",
-      name: "Use Cases",
+      name: "Use Cases & Test Cases",
       icon: "📝",
-    },
-    {
-      id: "test-cases",
-      name: "Test Cases",
-      icon: "🧪",
     },
   ];
 

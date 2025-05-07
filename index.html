@@ -14,9 +14,48 @@
     />
     <meta name="theme-color" content="#1e4976" />
     <title>ReqFlowly</title>
+    <style>
+      #root .initial-loading-spinner-container {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        height: 100vh;
+        background-color: #0a1929;
+        color: #ffffff;
+        text-align: center;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+          Helvetica, Arial, sans-serif;
+      }
+      #root .initial-loading-spinner {
+        width: 48px;
+        height: 48px;
+        border: 5px solid rgba(255, 255, 255, 0.2);
+        border-radius: 50%;
+        border-top-color: #ffffff;
+        animation: initial-spin 1s linear infinite;
+        margin-bottom: 1.5rem;
+      }
+      #root .initial-loading-spinner-container p {
+        font-size: 1.1rem;
+        font-weight: 500;
+        margin: 0;
+      }
+      @keyframes initial-spin {
+        to {
+          transform: rotate(360deg);
+        }
+      }
+    </style>
   </head>
   <body>
-    <div id="root"></div>
+    <noscript>You need to enable JavaScript to run this app.</noscript>
+    <div id="root">
+      <div class="initial-loading-spinner-container">
+        <div class="initial-loading-spinner"></div>
+        <p>Loading ReqFlowly...</p>
+      </div>
+    </div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

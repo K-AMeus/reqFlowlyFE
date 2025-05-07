@@ -177,9 +177,10 @@ const UseCaseTestCases: React.FC<UseCaseTestCasesProps> = ({
         currentSelectedUseCase.id,
         reqDto
       );
+
       showGlobalToast(
         "success",
-        `Test case generation initiated for ${currentSelectedUseCase.name}.`
+        `Test cases for use case ${currentSelectedUseCase.name} generated and saved successfully!`
       );
       fetchGeneratedTestCasesForUseCase(currentSelectedUseCase.id); // Re-fetch to get the new one + existing
     } catch (err) {
@@ -300,7 +301,8 @@ const UseCaseTestCases: React.FC<UseCaseTestCasesProps> = ({
         </div>
         <div className={styles.emptyState}>
           <p>
-            No use cases found for this requirement to generate test cases from.
+            No use cases exist for this requirement. You can generate them using
+            the "Create Use Cases" button above.
           </p>
         </div>
       </div>

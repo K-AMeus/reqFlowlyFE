@@ -11,8 +11,8 @@ const ProjectProgressBar: React.FC<ProjectProgressBarProps> = ({
   const steps = [
     { id: 1, label: "Requirements" },
     { id: 2, label: "Domain Obj." },
-    { id: 3, label: "Use Cases" },
-    { id: 4, label: "Test Cases" },
+    { id: 3, label: "Use & Test Cases" },
+    { id: 4, label: "Export" },
   ];
 
   return (

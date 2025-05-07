@@ -194,7 +194,6 @@ const Project: React.FC<ProjectComponentProps> = ({
       metadata: 1,
       "domain-objects": 2,
       "use-cases": 3,
-      "test-cases": 4,
     };
     return stepMap[page] || 1;
   };
@@ -349,16 +348,6 @@ const Project: React.FC<ProjectComponentProps> = ({
               <div className={`${styles.metadataCard}`}>
                 <UsedRequirementsList projectId={selectedProject.id} />
               </div>
-            </div>
-          </div>
-        );
-      case "test-cases":
-        return (
-          <div className={styles.testCasesContent}>
-            <div className={styles.comingSoon}>
-              <div className={styles.comingSoonIcon}>🚧</div>
-              <h3>Coming Soon</h3>
-              <p>Test case generation is under development.</p>
             </div>
           </div>
         );
