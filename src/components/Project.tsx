@@ -8,12 +8,18 @@ import UsedRequirementsList from "./UsedRequirementsList";
 import ProjectProgressBar from "./ProjectProgressBar";
 import { useAuth } from "../context/AuthContext";
 import { useParams, useNavigate } from "react-router-dom";
-import { EditIcon, DeleteIcon } from "../helpers/icons";
-import { formatTimeAgo } from "../helpers/dateUtils";
+import {
+  EditIcon,
+  DeleteIcon,
+  CardCalendarIcon,
+  CardTimeIcon,
+} from "../helpers/icons";
+import { formatShortDate } from "../helpers/dateUtils";
 import { navigateTo } from "../helpers/navigationUtils";
 import { createAuthenticatedRequest } from "../helpers/apiUtils";
 import axios from "axios";
 import { showGlobalToast } from "../helpers/toastUtils";
+import ExportPage from "./ExportPage";
 
 interface Project {
   id: string;
@@ -171,12 +177,14 @@ const Project: React.FC<ProjectComponentProps> = ({
     setSidebarOpen(!sidebarOpen);
   };
 
-  const handlePageChange = (page: string) => {
+  const handlePageChange = (page: string, requirementId?: string) => {
     setActivePage(page);
 
     if (projectId) {
       if (page === "metadata") {
         navigate(`/projects/${projectId}`);
+      } else if (page === "export" && requirementId) {
+        navigate(`/projects/${projectId}/export/${requirementId}`);
       } else {
         navigate(`/projects/${projectId}/${page}`);
       }
@@ -194,6 +202,7 @@ const Project: React.FC<ProjectComponentProps> = ({
       metadata: 1,
       "domain-objects": 2,
       "use-cases": 3,
+      export: 4,
     };
     return stepMap[page] || 1;
   };
@@ -220,18 +229,20 @@ const Project: React.FC<ProjectComponentProps> = ({
                       <h1>{selectedProject.name}</h1>
                       <div className={styles.headerDates}>
                         <div className={styles.metadataItem}>
+                          <CardCalendarIcon />
                           <span className={styles.metadataLabel}>Created:</span>
                           <span className={styles.metadataValue}>
                             {selectedProject.createdAt
-                              ? formatTimeAgo(selectedProject.createdAt)
+                              ? formatShortDate(selectedProject.createdAt)
                               : "N/A"}
                           </span>
                         </div>
                         <div className={styles.metadataItem}>
+                          <CardTimeIcon />
                           <span className={styles.metadataLabel}>Updated:</span>
                           <span className={styles.metadataValue}>
                             {selectedProject.updatedAt
-                              ? formatTimeAgo(selectedProject.updatedAt)
+                              ? formatShortDate(selectedProject.updatedAt)
                               : "N/A"}
                           </span>
                         </div>
@@ -346,8 +357,19 @@ const Project: React.FC<ProjectComponentProps> = ({
           <div className={styles.useCasesContent}>
             <div className={styles.unifiedContentContainer}>
               <div className={`${styles.metadataCard}`}>
-                <UsedRequirementsList projectId={selectedProject.id} />
+                <UsedRequirementsList
+                  projectId={selectedProject.id}
+                  onPageChange={handlePageChange}
+                />
               </div>
+            </div>
+          </div>
+        );
+      case "export":
+        return (
+          <div className={styles.unifiedContentContainer}>
+            <div className={styles.metadataCard}>
+              <ExportPage />
             </div>
           </div>
         );
@@ -381,7 +403,10 @@ const Project: React.FC<ProjectComponentProps> = ({
           !sidebarOpen ? sidebarStyles.mainContentFull : ""
         }`}
       >
-        <ProjectProgressBar currentStep={getStepNumber(activePage)} />
+        <ProjectProgressBar
+          currentStep={getStepNumber(activePage)}
+          totalSteps={4}
+        />
 
         <div className={styles.projectDetail}>
           {error && <div className={styles.error}>{error}</div>}

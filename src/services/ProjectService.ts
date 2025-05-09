@@ -10,12 +10,10 @@ export interface Project {
 
 export interface ProjectsPageResponse {
   content: Project[];
-  pageable: {
-    pageNumber: number;
-    pageSize: number;
-  };
-  totalElements: number;
   totalPages: number;
+  totalElements: number;
+  size: number;
+  number: number;
 }
 
 export class ProjectService {
@@ -26,18 +24,25 @@ export class ProjectService {
     this.api = api;
   }
 
-  async getAllProjects(page = 0, size = 10): Promise<ProjectsPageResponse> {
-    const response = await this.api.get(this.BASE_URL, {
+  async getAllProjects(
+    page: number,
+    size: number,
+    sortField: "name" | "createdAt" | "updatedAt",
+    sortDirection: "asc" | "desc"
+  ): Promise<ProjectsPageResponse> {
+    const response = await this.api.get<ProjectsPageResponse>(this.BASE_URL, {
       params: {
         page,
         size,
+        orderBy: sortField,
+        direction: sortDirection,
       },
     });
     return response.data;
   }
 
   async getProject(id: string): Promise<Project> {
-    const response = await this.api.get(`${this.BASE_URL}/${id}`);
+    const response = await this.api.get<Project>(`${this.BASE_URL}/${id}`);
     return response.data;
   }
 
@@ -45,7 +50,7 @@ export class ProjectService {
     name: string;
     description?: string;
   }): Promise<Project> {
-    const response = await this.api.post(this.BASE_URL, projectData);
+    const response = await this.api.post<Project>(this.BASE_URL, projectData);
     return response.data;
   }
 
@@ -53,7 +58,10 @@ export class ProjectService {
     id: string,
     projectData: { name: string; description?: string }
   ): Promise<Project> {
-    const response = await this.api.put(`${this.BASE_URL}/${id}`, projectData);
+    const response = await this.api.put<Project>(
+      `${this.BASE_URL}/${id}`,
+      projectData
+    );
     return response.data;
   }
 

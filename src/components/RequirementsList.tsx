@@ -12,14 +12,16 @@ import { showGlobalToast } from "../helpers/toastUtils";
 import {
   ChevronLeft,
   ChevronRight,
-  PDFIcon,
-  TextIcon,
   RequirementEditIcon,
   RequirementDeleteIcon,
   CancelIcon,
   SaveIcon,
+  CardCalendarIcon,
+  CardTimeIcon,
 } from "../helpers/icons";
 import { useNavigate } from "react-router-dom";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faFilePdf, faFileWord } from "@fortawesome/free-solid-svg-icons";
 
 interface RequirementsListProps {
   projectId: string;
@@ -730,18 +732,13 @@ const RequirementsList: React.FC<RequirementsListProps> = ({
               data-selectable={isSelectMode}
             >
               <div className={styles.requirementCardHeader}>
+                <FontAwesomeIcon
+                  icon={
+                    requirement.sourceType === "PDF" ? faFilePdf : faFileWord
+                  }
+                  className={styles.requirementTypeIcon}
+                />
                 <h3>{requirement.title}</h3>
-                <span
-                  className={`${styles.requirementType} ${
-                    requirement.sourceType === "PDF"
-                      ? styles.pdfType
-                      : styles.txtType
-                  }`}
-                >
-                  {requirement.sourceType === "PDF" && <PDFIcon />}
-                  {requirement.sourceType === "TEXT" && <TextIcon />}
-                  {requirement.sourceType === "TEXT" ? "TXT" : "PDF"}
-                </span>
               </div>
 
               <div className={styles.requirementCardContent}>
@@ -761,10 +758,30 @@ const RequirementsList: React.FC<RequirementsListProps> = ({
               </div>
 
               <div className={styles.requirementCardFooter}>
-                <span className={styles.requirementDateCard}>
-                  <span className={styles.footerLabel}>Updated: </span>
-                  {formatTimeAgo(requirement.updatedAt)}
-                </span>
+                <div className={styles.requirementDates}>
+                  {requirement.createdAt && (
+                    <div className={styles.dateItem}>
+                      <div className={styles.dateLabel}>
+                        <CardCalendarIcon />
+                        <span>Created</span>
+                      </div>
+                      <span className={styles.dateValue}>
+                        {formatTimeAgo(requirement.createdAt)}
+                      </span>
+                    </div>
+                  )}
+                  {requirement.updatedAt && (
+                    <div className={styles.dateItem}>
+                      <div className={styles.dateLabel}>
+                        <CardTimeIcon />
+                        <span>Updated</span>
+                      </div>
+                      <span className={styles.dateValue}>
+                        {formatTimeAgo(requirement.updatedAt)}
+                      </span>
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
           ))}
@@ -882,7 +899,7 @@ const RequirementsList: React.FC<RequirementsListProps> = ({
                   }`}
                   onClick={() => handleRequirementTypeChange("TEXT")}
                 >
-                  <TextIcon /> Text
+                  <FontAwesomeIcon icon={faFileWord} /> Text
                 </button>
                 <button
                   type="button"
@@ -891,7 +908,7 @@ const RequirementsList: React.FC<RequirementsListProps> = ({
                   }`}
                   onClick={() => handleRequirementTypeChange("PDF")}
                 >
-                  <PDFIcon /> PDF
+                  <FontAwesomeIcon icon={faFilePdf} /> PDF
                 </button>
               </div>
 
@@ -963,7 +980,8 @@ const RequirementsList: React.FC<RequirementsListProps> = ({
                     >
                       {selectedFile ? (
                         <div className={styles.selectedFile}>
-                          <PDFIcon /> {selectedFile.name}
+                          <FontAwesomeIcon icon={faFilePdf} />{" "}
+                          {selectedFile.name}
                         </div>
                       ) : (
                         <div className={styles.fileUploadPrompt}>

@@ -1,6 +1,8 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
 import styles from "../styles/LandingPage.module.css";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faFilePdf } from "@fortawesome/free-solid-svg-icons";
 
 const LandingPage: React.FC = () => {
   const navigate = useNavigate();
@@ -58,32 +60,83 @@ const LandingPage: React.FC = () => {
               </div>
               <div className={styles.browserContent}>
                 <div className={styles.mockupDashboard}>
-                  <div className={styles.mockupTitle}>
-                    Use Case & Test Case Generator
+                  <div className={styles.mockupHeader}>
+                    <h4>AI Requirements Analyzer</h4>
                   </div>
-                  <div className={styles.mockupTabs}>
-                    <div
-                      className={`${styles.mockupTab} ${styles.mockupActiveTab}`}
-                    >
-                      Text Input
+                  <div className={styles.mockupMainContent}>
+                    <div className={styles.mockupInputPanel}>
+                      <div className={styles.mockupTabs}>
+                        <div
+                          className={`${styles.mockupTab} ${styles.mockupActiveTab}`}
+                        >
+                          <span className={styles.mockupTabIcon}>📄</span>
+                          Text Input
+                        </div>
+                        <div className={styles.mockupTab}>
+                          <span className={styles.mockupTabIcon}>
+                            <FontAwesomeIcon icon={faFilePdf} />
+                          </span>
+                          PDF Upload
+                        </div>
+                      </div>
+                      <div className={styles.mockupTextareaPlaceholder}>
+                        <p>
+                          Enter your software requirements, user stories, or
+                          feature descriptions here...
+                        </p>
+                        <span>(Or select PDF Upload)</span>
+                      </div>
+                      <button
+                        onClick={navigateToLogin}
+                        className={styles.mockupGenerateButton}
+                      >
+                        Analyze & Generate Assets
+                      </button>
                     </div>
-                    <div className={styles.mockupTab}>PDF Upload</div>
-                  </div>
-                  <div className={styles.mockupTextarea}></div>
-                  <button
-                    onClick={navigateToLogin}
-                    className={styles.mockupButton}
-                  >
-                    Generate Cases
-                  </button>
-                  <div className={styles.mockupResultsSection}>
-                    <div className={styles.mockupResultsHeader}>
-                      Domain Objects
-                    </div>
-                    <div className={styles.mockupResultsTable}>
-                      <div className={styles.mockupTableRow}></div>
-                      <div className={styles.mockupTableRow}></div>
-                      <div className={styles.mockupTableRow}></div>
+                    <div className={styles.mockupResultsPanel}>
+                      <div className={styles.mockupPanelHeader}>
+                        Generated Assets
+                      </div>
+                      <div className={styles.mockupResultItem}>
+                        <span
+                          className={`${styles.mockupResultIcon} ${styles.iconDomainObject}`}
+                        >
+                          DO
+                        </span>
+                        <span className={styles.mockupResultText}>
+                          User Profile Management
+                        </span>
+                      </div>
+                      <div className={styles.mockupResultItem}>
+                        <span
+                          className={`${styles.mockupResultIcon} ${styles.iconUseCase}`}
+                        >
+                          UC
+                        </span>
+                        <span className={styles.mockupResultText}>
+                          Update Email Address
+                        </span>
+                      </div>
+                      <div className={styles.mockupResultItem}>
+                        <span
+                          className={`${styles.mockupResultIcon} ${styles.iconTestCase}`}
+                        >
+                          TC
+                        </span>
+                        <span className={styles.mockupResultText}>
+                          TC001: Valid Email Update
+                        </span>
+                      </div>
+                      <div className={styles.mockupResultItem}>
+                        <span
+                          className={`${styles.mockupResultIcon} ${styles.iconTestCase}`}
+                        >
+                          TC
+                        </span>
+                        <span className={styles.mockupResultText}>
+                          TC002: Invalid Email Format
+                        </span>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -203,7 +256,7 @@ const LandingPage: React.FC = () => {
           Ready to Transform Your Requirements Process?
         </h2>
         <p className={styles.ctaDescription}>
-          Join thousands of developers and QA professionals who are saving time
+          Join with other developers and QA professionals who are saving time
           and improving quality with automated use case and test case
           generation.
         </p>

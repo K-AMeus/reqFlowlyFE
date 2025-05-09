@@ -48,7 +48,7 @@ const Footer: React.FC = () => {
               </li>
               <li>
                 <a href="#" className={styles.footerLink}>
-                  API Reference
+                  Roadmap
                 </a>
               </li>
               <li>

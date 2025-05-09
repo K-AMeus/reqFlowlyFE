@@ -9,11 +9,13 @@ import {
   UploaderEditIcon,
   UploaderSaveIcon,
   UploaderCancelIcon,
+  PDFIcon,
 } from "../helpers/icons";
 import { navigateToUseCases } from "../helpers/navigationUtils";
 import { showGlobalToast } from "../helpers/toastUtils";
 import { RequirementDto } from "../services/RequirementService";
-import { PDFIcon } from "../helpers/icons";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faFilePdf, faFileWord } from "@fortawesome/free-solid-svg-icons";
 
 interface UseCaseResponse {
   domainObjects: { [key: string]: string[] };
@@ -687,16 +689,18 @@ const UseCaseUploader: React.FC = () => {
                                   : ""
                               }`}
                               onClick={() =>
-                                handleSelectRequirement(
-                                  req.id,
-                                  `${req.title} (${req.sourceType})`
-                                )
+                                handleSelectRequirement(req.id, req.title)
                               }
                             >
-                              {req.title}{" "}
-                              <span className={styles.reqSourceType}>
-                                ({req.sourceType})
-                              </span>
+                              <FontAwesomeIcon
+                                icon={
+                                  req.sourceType === "PDF"
+                                    ? faFilePdf
+                                    : faFileWord
+                                }
+                                className={styles.dropdownReqIcon}
+                              />
+                              {req.title}
                             </li>
                           ))
                         )}

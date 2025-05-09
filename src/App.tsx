@@ -6,6 +6,7 @@ import {
   Navigate,
   useParams,
   useNavigate,
+  useLocation,
 } from "react-router-dom";
 import Header from "./components/Header";
 import Footer from "./components/Footer";
@@ -18,6 +19,7 @@ import UseCaseTestCases from "./components/UseCaseTestCases";
 import ToastContainer from "./components/ToastContainer";
 import { AuthProvider, useAuth } from "./context/AuthContext";
 import ScrollToTop from "./hooks/ScrollToTop";
+import ExportPage from "./components/ExportPage";
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
@@ -88,6 +90,14 @@ const AppRoutes = () => {
             }
           />
           <Route
+            path="/projects/:projectId/export/:requirementId"
+            element={
+              <ProtectedRoute>
+                <Project initialView="export" />
+              </ProtectedRoute>
+            }
+          />
+          <Route
             path="/projects/:projectId/requirements/:requirementId/generate-use-cases"
             element={
               <ProtectedRoute>
@@ -100,6 +110,14 @@ const AppRoutes = () => {
             element={
               <ProtectedRoute>
                 <UseCaseTestCasesRouteWrapper />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/projects/:projectId/requirements/:requirementId/export"
+            element={
+              <ProtectedRoute>
+                <ExportPageRouteWrapper />
               </ProtectedRoute>
             }
           />
@@ -162,6 +180,15 @@ const UseCaseTestCasesRouteWrapper = () => {
       }
     />
   );
+};
+
+const ExportPageRouteWrapper = () => {
+  const { projectId, requirementId } = useParams();
+
+  if (!projectId || !requirementId) {
+    return <Navigate to="/projects" replace />;
+  }
+  return <ExportPage />;
 };
 
 const App = () => {

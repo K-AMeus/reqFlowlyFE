@@ -8,8 +8,6 @@ import { formatTimeAgo } from "../helpers/dateUtils";
 import {
   ChevronLeft,
   ChevronRight,
-  PDFIcon,
-  TextIcon,
   RequirementEditIcon,
   RequirementDeleteIcon,
   SaveIcon,
@@ -21,13 +19,17 @@ import { UseCaseCreateResDto, UseCaseDto } from "../services/UseCaseService";
 import { TestCaseCreateResDto, TestCaseDto } from "../services/TestCaseService";
 import { showGlobalToast } from "../helpers/toastUtils";
 import ReactMarkdown from "react-markdown";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faFilePdf, faFileWord } from "@fortawesome/free-solid-svg-icons";
 
 interface UsedRequirementsListProps {
   projectId: string;
+  onPageChange: (page: string, requirementId?: string) => void;
 }
 
 const UsedRequirementsList: React.FC<UsedRequirementsListProps> = ({
   projectId,
+  onPageChange,
 }): React.ReactElement | null => {
   const [requirements, setRequirements] = useState<RequirementDto[]>([]);
   const [loading, setLoading] = useState(true);
@@ -594,13 +596,16 @@ const UsedRequirementsList: React.FC<UsedRequirementsListProps> = ({
             </button>
             <button
               className={styles.actionButton}
-              onClick={() =>
-                navigate(
-                  `/projects/${projectId}/requirements/${selectedRequirement.id}/generate-use-cases`
-                )
-              }
+              onClick={() => {
+                console.log(
+                  "Navigating to Export Page from UsedRequirementsList:"
+                );
+                console.log("Project ID:", projectId);
+                console.log("Requirement ID:", selectedRequirement.id);
+                onPageChange("export", selectedRequirement.id);
+              }}
             >
-              Create Use Cases <ChevronRight />
+              Export Document <ChevronRight />
             </button>
           </div>
 
@@ -955,6 +960,29 @@ const UsedRequirementsList: React.FC<UsedRequirementsListProps> = ({
               </div>
             )}
           </div>
+
+          {selectedRequirement && fetchedUseCases.length > 0 && (
+            <div
+              className={`${styles.detailBottomActions} ${styles.centeredActions}`}
+            >
+              <button
+                className={styles.actionButton}
+                onClick={() =>
+                  navigate(
+                    `/projects/${projectId}/requirements/${selectedRequirement.id}/generate-use-cases`
+                  )
+                }
+                style={{
+                  marginLeft: "auto",
+                  marginRight: "auto",
+                  display: "flex",
+                  marginTop: "0.5rem",
+                }}
+              >
+                Create Use Cases
+              </button>
+            </div>
+          )}
         </>
         {showDeleteConfirm &&
           ReactDOM.createPortal(
@@ -1047,20 +1075,13 @@ const UsedRequirementsList: React.FC<UsedRequirementsListProps> = ({
                 onClick={() => handleRequirementClick(requirement)}
               >
                 <div className={styles.requirementCardHeader}>
+                  <FontAwesomeIcon
+                    icon={
+                      requirement.sourceType === "PDF" ? faFilePdf : faFileWord
+                    }
+                    className={styles.requirementTypeIcon}
+                  />
                   <h3>{requirement.title}</h3>
-                  <span
-                    className={`${styles.requirementType} ${
-                      styles.topRightType
-                    } ${
-                      requirement.sourceType === "PDF"
-                        ? styles.pdfType
-                        : styles.txtType
-                    }`}
-                  >
-                    {requirement.sourceType === "PDF" && <PDFIcon />}
-                    {requirement.sourceType === "TEXT" && <TextIcon />}
-                    {requirement.sourceType === "TEXT" ? "TXT" : "PDF"}
-                  </span>
                 </div>
 
                 <div className={styles.domainObjectPreview}>

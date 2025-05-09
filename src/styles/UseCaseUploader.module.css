@@ -1295,6 +1295,18 @@ tr.suggestedRow td {
 .customDropdownOption.disabled {
   color: #777;
   cursor: not-allowed;
+  background-color: #f9f9f9;
+}
+
+.dropdownReqIcon {
+  margin-right: 8px;
+  font-size: 1em;
+  color: rgb(247, 251, 255);
+  flex-shrink: 0;
+}
+
+.customDropdownOption:hover .customDropdownOptionActive .dropdownReqIcon {
+  color: #1e4976;
 }
 
 .reqSourceType {

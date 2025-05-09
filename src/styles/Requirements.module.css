@@ -57,39 +57,56 @@
   overflow: hidden;
 }
 
+.requirementsWrapper :global(.requirementCardUsed) {
+  border: 1px solid rgba(30, 73, 118, 0.1);
+  transition: all 0.2s ease;
+}
+
+.requirementsWrapper :global(.requirementCardUsed:hover) {
+  transform: translateY(-3px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  border-color: rgba(30, 73, 118, 0.3);
+}
+
 .requirementCard:hover {
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08), 0 2px 6px rgba(0, 0, 0, 0.08);
   border-color: #c7ced4;
   transform: scale(1.015);
 }
 
-.requirementCardHeader {
+.requirementCardHeaderUsed {
   display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  margin-bottom: 1rem;
-  position: relative;
-  padding-right: 0;
-  gap: 10px;
+  align-items: center;
+  margin-bottom: 0.75rem;
+  gap: 0.5rem;
 }
 
-.headerTitleWrapper {
-  flex-grow: 1;
+.requirementCardUsed:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08), 0 2px 6px rgba(0, 0, 0, 0.08);
+  border-color: #c7ced4;
+}
+
+.requirementCardHeader {
+  display: flex;
+  align-items: center;
+  margin-bottom: 0.75rem;
+  gap: 0.5rem;
+}
+
+.requirementTypeIcon {
+  font-size: 1.2em;
+  color: #1e4976;
+  flex-shrink: 0;
 }
 
 .requirementCardHeader h3 {
+  margin: 0;
   font-size: 1.1rem;
   font-weight: 600;
-  color: #0a1929;
-  margin: 0;
-  line-height: 1.4;
-  flex-grow: 1;
-  padding-right: 0.5rem;
+  color: #333;
+  white-space: nowrap;
   overflow: hidden;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  max-height: 2.8em;
+  text-overflow: ellipsis;
 }
 
 .requirementCardTitle {
@@ -2197,4 +2214,76 @@
 
 .testCaseHeader {
   padding-bottom: 0;
+}
+
+.requirementDates {
+  width: 100%;
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 0.5rem;
+}
+
+.dateItem {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.dateLabel {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.65rem;
+  text-transform: uppercase;
+  font-weight: 700;
+  opacity: 0.85;
+  letter-spacing: 0.5px;
+}
+
+.dateLabel span {
+  font-weight: 700;
+}
+
+.dateValue {
+  font-size: 0.75rem;
+}
+
+.dateLabel svg {
+  width: 12px;
+  height: 12px;
+  opacity: 0.7;
+  flex-shrink: 0;
+}
+
+.requirementDescriptionFull {
+  color: #4b5563;
+  font-size: 0.9rem;
+  line-height: 1.6;
+  margin: 0 0 1.25rem 0;
+  flex-grow: 1;
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+}
+
+.requirementCardStatic {
+  composes: requirementCard;
+  max-width: 400px;
+  margin-left: auto;
+  margin-right: auto;
+  margin-bottom: 2rem;
+  cursor: default !important;
+  transform: none !important;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04), 0 1px 2px rgba(0, 0, 0, 0.06) !important;
+  transition: none !important;
+}
+
+.requirementCardHeader {
+  display: flex;
+  align-items: center;
+  margin-bottom: 0.75rem;
+  gap: 0.5rem;
 }

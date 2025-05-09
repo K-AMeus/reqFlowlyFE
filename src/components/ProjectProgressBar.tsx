@@ -3,17 +3,21 @@ import styles from "../styles/ProjectProgressBar.module.css";
 
 interface ProjectProgressBarProps {
   currentStep: number;
+  totalSteps?: number;
 }
 
 const ProjectProgressBar: React.FC<ProjectProgressBarProps> = ({
   currentStep,
+  totalSteps = 4,
 }) => {
-  const steps = [
+  const stepsData = [
     { id: 1, label: "Requirements" },
     { id: 2, label: "Domain Obj." },
     { id: 3, label: "Use & Test Cases" },
     { id: 4, label: "Export" },
   ];
+
+  const steps = stepsData.slice(0, totalSteps);
 
   return (
     <div className={styles.progressBarContainer}>
