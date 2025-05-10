@@ -37,6 +37,7 @@ const UseCaseTestCases: React.FC<UseCaseTestCasesProps> = ({
   const [loadingUseCases, setLoadingUseCases] = useState(true);
   const [generatingTestCases, setGeneratingTestCases] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [customPrompt, setCustomPrompt] = useState("");
 
   const [generatedTestCases, setGeneratedTestCases] = useState<
     Record<string, TestCaseCreateResDto[]>
@@ -169,6 +170,7 @@ const UseCaseTestCases: React.FC<UseCaseTestCasesProps> = ({
       const reqDto: TestCaseCreateReqDto = {
         useCaseName: currentSelectedUseCase.name,
         useCaseContent: currentSelectedUseCase.content,
+        customPrompt: customPrompt.trim() || undefined,
       };
 
       await services.testCaseService.createTestCases(
@@ -342,6 +344,23 @@ const UseCaseTestCases: React.FC<UseCaseTestCasesProps> = ({
           </pre>
         </div>
       )}
+
+      <div className={styles.inputWrapper}>
+        <label
+          htmlFor="customPrompt"
+          className={`${styles.inputLabel} ${styles.optional}`}
+        >
+          Custom GPT instructions
+        </label>
+        <input
+          id="customPrompt"
+          type="text"
+          className={styles.customPromptInput}
+          value={customPrompt}
+          onChange={(e) => setCustomPrompt(e.target.value)}
+          placeholder="Specific instructions for test case generation"
+        />
+      </div>
 
       {allUseCases.length > 1 && (
         <div className={styles.pagination} style={{ marginBottom: "20px" }}>

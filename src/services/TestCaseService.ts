@@ -3,6 +3,7 @@ import { AxiosInstance } from "axios";
 export interface TestCaseCreateReqDto {
   useCaseName: string;
   useCaseContent: string;
+  customPrompt?: string;
 }
 
 export interface TestCaseCreateResDto {

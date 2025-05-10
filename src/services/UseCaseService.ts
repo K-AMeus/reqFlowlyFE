@@ -3,6 +3,7 @@ import { AxiosInstance } from "axios";
 export interface UseCaseCreateReqDto {
   domainObject: string;
   attributes: string[];
+  customPrompt?: string;
 }
 
 export interface UseCaseCreateResDto {

@@ -733,7 +733,7 @@ const UseCaseUploader: React.FC = () => {
                         htmlFor="newReqDesc"
                         className={`${styles.inputLabel} ${styles.optional}`}
                       >
-                        Description (Optional)
+                        Description
                       </label>
                       <textarea
                         id="newReqDesc"
@@ -798,7 +798,7 @@ const UseCaseUploader: React.FC = () => {
                       <label
                         className={`${styles.inputLabel} ${styles.optional}`}
                       >
-                        Custom GPT instructions (Optional)
+                        Custom GPT instructions
                       </label>
                       <input
                         type="text"

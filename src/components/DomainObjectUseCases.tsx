@@ -46,6 +46,7 @@ const DomainObjectUseCases: React.FC<DomainObjectUseCasesProps> = ({
   const [useCaseToDelete, setUseCaseToDelete] =
     useState<UseCaseCreateResDto | null>(null);
   const [deleteLoading, setDeleteLoading] = useState(false);
+  const [customPrompt, setCustomPrompt] = useState("");
 
   const { currentUser } = useAuth();
   const navigate = useNavigate();
@@ -120,6 +121,7 @@ const DomainObjectUseCases: React.FC<DomainObjectUseCasesProps> = ({
         {
           domainObject: domainObjectName,
           attributes: attributes,
+          customPrompt: customPrompt.trim() || undefined,
         }
       );
 
@@ -318,6 +320,23 @@ const DomainObjectUseCases: React.FC<DomainObjectUseCasesProps> = ({
             </tr>
           </tbody>
         </table>
+      </div>
+
+      <div className={styles.inputWrapper}>
+        <label
+          htmlFor="customPrompt"
+          className={`${styles.inputLabel} ${styles.optional}`}
+        >
+          Custom GPT instructions
+        </label>
+        <input
+          id="customPrompt"
+          type="text"
+          className={styles.customPromptInput}
+          value={customPrompt}
+          onChange={(e) => setCustomPrompt(e.target.value)}
+          placeholder="Specific instructions for use case generation"
+        />
       </div>
 
       <div className={styles.generateButtonContainer}>
