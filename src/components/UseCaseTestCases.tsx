@@ -334,6 +334,15 @@ const UseCaseTestCases: React.FC<UseCaseTestCasesProps> = ({
         </button>
       </div>
 
+      <div className={styles.requirementsHeader}>
+        <h2>Generate Test Cases</h2>
+        <p className={styles.requirementsSubtitle}>
+          Create test cases for your use cases to validate your requirements.
+          You can provide optional custom GPT instructions to guide the
+          generation process.
+        </p>
+      </div>
+
       {currentSelectedUseCase && (
         <div className={styles.useCaseItem} style={{ marginBottom: "20px" }}>
           <div className={styles.useCaseHeader}>

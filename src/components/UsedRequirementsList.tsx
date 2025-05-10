@@ -348,12 +348,28 @@ const UsedRequirementsList: React.FC<UsedRequirementsListProps> = ({
       setShowDeleteConfirm(false);
       setUseCaseToDelete(null);
       showGlobalToast("success", "Use case deleted successfully.");
-    } catch (err) {
+    } catch (err: unknown) {
       console.error("Error deleting use case:", err);
-      showGlobalToast(
-        "error",
-        `Failed to delete use case "${useCaseToDelete.name}".`
-      );
+
+      if (
+        err &&
+        typeof err === "object" &&
+        "response" in err &&
+        err.response &&
+        typeof err.response === "object" &&
+        "status" in err.response &&
+        err.response.status === 403
+      ) {
+        showGlobalToast(
+          "error",
+          `Cannot delete use case "${useCaseToDelete.name}" because it has associated test cases. Please delete test cases first.`
+        );
+      } else {
+        showGlobalToast(
+          "error",
+          `Failed to delete use case "${useCaseToDelete.name}".`
+        );
+      }
     } finally {
       setDeleteLoading(false);
     }
@@ -1143,9 +1159,9 @@ const UsedRequirementsList: React.FC<UsedRequirementsListProps> = ({
           <div className={styles.requirementsHeader}>
             <h2>Use Cases & Test Cases</h2>
             <p className={styles.requirementsSubtitle}>
-              List of requirements that have been used to create domain objects
-              with. To create use cases and test cases, select a requirement
-              from the list below.
+              List of requirements that have domain objects associated with
+              them. Select a requirement to generate corresponding use cases and
+              test cases.
             </p>
           </div>
           {error && <div className={styles.error}>{error}</div>}

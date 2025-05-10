@@ -711,15 +711,35 @@
   outline: none;
   font-size: 1rem;
   margin-bottom: 4px;
+  line-height: 1.4;
+}
+
+.formGroup input {
   resize: none;
   overflow: hidden;
-  line-height: 1.4;
+}
+
+.formGroup textarea {
+  resize: vertical;
+  overflow: auto;
 }
 
 .formGroup input:focus,
 .formGroup textarea:focus {
   border-color: #4d89c4;
   box-shadow: 0 0 0 2px rgba(77, 137, 196, 0.3);
+}
+
+.formGroup textarea.contentInput {
+  min-height: 200px;
+  height: 250px;
+  max-height: 400px;
+  resize: vertical;
+  overflow: auto !important;
+  font-family: inherit;
+  line-height: 1.5;
+  white-space: pre-wrap;
+  word-break: normal;
 }
 
 .formActions {
@@ -1187,10 +1207,6 @@
 }
 
 .contentInput {
-  min-height: 200px;
-  height: 250px;
-  resize: vertical;
-  overflow: auto;
   font-family: inherit;
   line-height: 1.5;
 }

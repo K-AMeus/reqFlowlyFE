@@ -289,6 +289,15 @@ const DomainObjectUseCases: React.FC<DomainObjectUseCasesProps> = ({
         </button>
       </div>
 
+      <div className={styles.requirementsHeader}>
+        <h2>Generate Use Cases</h2>
+        <p className={styles.requirementsSubtitle}>
+          Create use cases based on domain objects and their attributes. You can
+          provide optional custom GPT instructions to guide the generation
+          process.
+        </p>
+      </div>
+
       <div className={styles.tableContainer}>
         <table className={styles.domainObjectTable}>
           <thead>

@@ -68,6 +68,17 @@
   border-radius: 2px;
 }
 
+.subtitle {
+  text-align: center;
+  font-size: 1rem;
+  color: #8a99b8;
+  margin: -0.5rem 0 2rem 0;
+  max-width: 800px;
+  margin-left: auto;
+  margin-right: auto;
+  line-height: 1.5;
+}
+
 .mainTabs {
   display: flex;
   justify-content: center;

@@ -576,6 +576,11 @@ const UseCaseUploader: React.FC = () => {
         <div className={styles.diagonalLine}></div>
         <div className={styles.diagonalLine}></div>
         <h1 className={styles.title}>Domain Object Generator</h1>
+        <p className={styles.subtitle}>
+          Extract domain objects and their attributes from your requirements.
+          These domain objects will serve as the foundation for generating use
+          cases and test cases.
+        </p>
 
         {isLoadingRequirements ? (
           <div className={styles.loadingContainer}>
